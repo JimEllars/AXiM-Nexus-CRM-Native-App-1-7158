@@ -1,0 +1,100 @@
+import React, { useState } from 'react';
+import { useCrm } from '../context/CrmContext';
+import SafeIcon from '../common/SafeIcon';
+import * as FiIcons from 'react-icons/fi';
+
+const Accounts = () => {
+  const { accounts, deals, contacts } = useCrm();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredAccounts = accounts.filter(acc => 
+    acc.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    acc.industry.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getAccountMetrics = (accountId) => {
+    const accDeals = deals.filter(d => d.account_id === accountId);
+    const accContacts = contacts.filter(c => c.account_id === accountId);
+    return {
+      dealCount: accDeals.length,
+      totalValue: accDeals.reduce((sum, d) => sum + d.amount, 0),
+      contactCount: accContacts.length
+    };
+  };
+
+  return (
+    <div className="p-8 max-w-7xl mx-auto w-full">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Account Matrix</h1>
+          <p className="text-slate-500 text-sm mt-1">Enterprise organizational structures and firmographic intelligence.</p>
+        </div>
+        <div className="flex space-x-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <SafeIcon icon={FiIcons.FiSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Filter organizations..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
+            />
+          </div>
+          <button className="bg-slate-900 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-indigo-100 shrink-0">
+            <SafeIcon icon={FiIcons.FiPlus} />
+            <span>New Account</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredAccounts.map(acc => {
+          const metrics = getAccountMetrics(acc.id);
+          return (
+            <div key={acc.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-indigo-300 transition-all group">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-12 h-12 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
+                    <SafeIcon icon={FiIcons.FiBriefcase} className="text-xl" />
+                  </div>
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{acc.industry}</div>
+                </div>
+                
+                <h3 className="text-lg font-black text-slate-900 mb-1">{acc.company_name}</h3>
+                <div className="flex items-center space-x-2 text-xs text-slate-400 font-mono mb-6">
+                  <SafeIcon icon={FiIcons.FiGlobe} />
+                  <a href={`https://${acc.website}`} className="hover:text-indigo-600">{acc.website}</a>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 border-t border-slate-50 pt-6">
+                  <div>
+                    <div className="text-[9px] font-black text-slate-400 uppercase mb-1">Contacts</div>
+                    <div className="text-sm font-black text-slate-800">{metrics.contactCount}</div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] font-black text-slate-400 uppercase mb-1">Deals</div>
+                    <div className="text-sm font-black text-slate-800">{metrics.dealCount}</div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] font-black text-slate-400 uppercase mb-1">Value</div>
+                    <div className="text-sm font-black text-indigo-600">${(metrics.totalValue / 1000).toFixed(0)}k</div>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                  {acc.employee_count.toLocaleString()} Employees
+                </div>
+                <button className="text-slate-400 hover:text-indigo-600 transition-colors">
+                  <SafeIcon icon={FiIcons.FiArrowRight} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default Accounts;
