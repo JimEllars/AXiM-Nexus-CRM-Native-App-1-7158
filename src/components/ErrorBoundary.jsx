@@ -14,8 +14,16 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     this.setState({ error, errorInfo });
-    // Log error to console for Cloudflare Pages analytics
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    // Log error cleanly for Cloudflare Pages analytics, asynchronously to not block the main thread
+    setTimeout(() => {
+      console.error(JSON.stringify({
+        level: 'error',
+        message: error.message || 'Unknown error',
+        stack: error.stack,
+        componentStack: errorInfo?.componentStack || '',
+        timestamp: new Date().toISOString()
+      }, null, 2));
+    }, 0);
   }
 
   render() {

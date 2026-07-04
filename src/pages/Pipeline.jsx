@@ -121,10 +121,30 @@ const Pipeline = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-full items-center justify-center bg-slate-50">
-        <SafeIcon icon={FiIcons.FiRefreshCw} className="animate-spin text-4xl text-indigo-500 mb-4" />
-        <h2 className="text-xl font-bold text-slate-800">Loading Pipeline...</h2>
-        <p className="text-sm text-slate-500 mt-2">Retrieving active deals from the core.</p>
+      <div className="flex flex-col h-full bg-slate-50 p-8 space-y-6">
+        <div className="h-10 bg-slate-200 animate-pulse rounded-lg w-1/4"></div>
+        <div className="flex space-x-6 h-full items-start">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex flex-col min-w-[320px] max-w-[320px] bg-slate-50 rounded-xl border border-slate-200 h-full overflow-hidden">
+              <div className="p-4 border-b border-slate-200 bg-slate-100/50">
+                <div className="h-4 bg-slate-200 animate-pulse rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-slate-200 animate-pulse rounded w-1/3"></div>
+              </div>
+              <div className="p-3 space-y-3">
+                {[1, 2].map((j) => (
+                  <div key={j} className="bg-white p-4 rounded-lg border border-slate-200 h-28 animate-pulse">
+                    <div className="h-4 bg-slate-200 rounded w-3/4 mb-3"></div>
+                    <div className="h-3 bg-slate-200 rounded w-1/2 mb-4"></div>
+                    <div className="flex justify-between">
+                      <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                      <div className="h-4 bg-slate-200 rounded w-1/6"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
