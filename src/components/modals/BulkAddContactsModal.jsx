@@ -17,18 +17,19 @@ const BulkAddContactsModal = ({ isOpen, onClose }) => {
     setError(null);
 
     try {
-      // TODO: Route these inputs to our Cloudflare Worker Enrichment Bridge in the next sprint.
-      // Direct database writes are currently disabled for this ingress method.
-      throw new Error('Direct bulk ingestion is temporarily disabled. Please route through the Worker Enrichment Bridge.');
+      const enrichmentBridgeUrl = import.meta.env.VITE_ENRICHMENT_BRIDGE_URL;
 
-      /*
-      const lines = csvText.trim().split('\n');
-      if (lines.length === 0 || (lines.length === 1 && lines[0].trim() === '')) {
-        throw new Error('No data provided');
+      if (!enrichmentBridgeUrl) {
+        throw new Error("Enrichment Bridge URL is not configured.");
+      }
+
+      const lines = csvText.trim().split("\n");
+      if (lines.length === 0 || (lines.length === 1 && lines[0].trim() === "")) {
+        throw new Error("No data provided");
       }
 
       const contacts = lines.map(line => {
-        const [firstName, lastName, email, phone, type] = line.split(',').map(s => s.trim());
+        const [firstName, lastName, email, phone, type] = line.split(",").map(s => s.trim());
         if (!firstName || !lastName || !email) {
           throw new Error(`Invalid line: ${line}. Required format: First Name, Last Name, Email, Phone, Type`);
         }
@@ -36,15 +37,25 @@ const BulkAddContactsModal = ({ isOpen, onClose }) => {
           first_name: firstName,
           last_name: lastName,
           email,
-          phone: phone || '',
-          type: type || 'B2B_LEAD'
+          phone: phone || "",
+          type: type || "B2B_LEAD"
         };
       });
 
-      await bulkAddContacts(contacts);
+      const response = await fetch(enrichmentBridgeUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ contacts })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to ingest contacts: ${response.statusText}`);
+      }
+
       onClose();
-      setCsvText('');
-      */
+      setCsvText("");
     } catch (err) {
       setError(err.message);
     } finally {

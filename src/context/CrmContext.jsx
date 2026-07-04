@@ -5,6 +5,7 @@ import { dealService } from '../services/dealService';
 import { activityService } from '../services/activityService';
 import { campaignService } from '../services/campaignService';
 import { taskService } from '../services/taskService';
+import { supabase } from '../lib/supabase';
 
 const CrmContext = createContext();
 
@@ -12,6 +13,7 @@ export const useCrm = () => useContext(CrmContext);
 
 export const CrmProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -24,6 +26,7 @@ export const CrmProvider = ({ children }) => {
 
   const loadAllData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [accs, cons, dls, acts, camps, tsks] = await Promise.all([
         accountService.getAll(),
@@ -39,8 +42,9 @@ export const CrmProvider = ({ children }) => {
       setActivities(acts || []);
       setCampaigns(camps || []);
       setTasks(tsks || []);
-    } catch (error) {
-      console.error('Failed to load CRM data:', error);
+    } catch (err) {
+      console.error('Failed to load CRM data:', err);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -48,6 +52,26 @@ export const CrmProvider = ({ children }) => {
 
   useEffect(() => {
     loadAllData();
+
+    // Supabase Realtime Prep: Subscription for crm.deals table
+    const channel = supabase.channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'deals'
+        },
+        (payload) => {
+          console.log('Realtime Deals update received:', payload);
+          // In future sprints, wire this up to update the UI deals state
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const addDeal = async (dealData) => {
@@ -141,7 +165,7 @@ export const CrmProvider = ({ children }) => {
 
   return (
     <CrmContext.Provider value={{
-      loading, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
+      loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
       addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, runOnyxSweep, refreshData: loadAllData
     }}>
       {children}
