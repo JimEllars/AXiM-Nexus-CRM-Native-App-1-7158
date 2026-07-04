@@ -22,8 +22,42 @@ const Customer360 = () => {
   const { contacts, accounts, activities, deals } = useCrm();
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
+  const { loading, error } = useCrm();
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center p-8">
+        <SafeIcon icon={FiIcons.FiRefreshCw} className="animate-spin text-4xl text-indigo-500 mb-4" />
+        <h2 className="text-xl font-bold text-slate-800">Loading Entity...</h2>
+        <p className="text-sm text-slate-500 mt-2">Retrieving stakeholder profile from the core.</p>
+      </div>
+    );
+  }
+
   const contact = contacts.find(c => c.id === id);
-  if (!contact) return <div className="p-8 text-center text-slate-500">Entity not found.</div>;
+
+  if (error || !contact) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center p-8">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center max-w-md w-full">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
+            <SafeIcon icon={FiIcons.FiUserX} className="text-2xl" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Entity Not Found</h2>
+          <p className="text-sm text-slate-500 mb-6">
+            {error ? "There was an error communicating with the database." : "The requested stakeholder could not be found or has been removed."}
+          </p>
+          <button
+            onClick={() => navigate('/directory')}
+            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center space-x-2"
+          >
+            <SafeIcon icon={FiIcons.FiArrowLeft} />
+            <span>Return to Directory</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const account = accounts.find(a => a.id === contact.account_id);
   const contactActivities = activities.filter(a => a.contact_id === id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));

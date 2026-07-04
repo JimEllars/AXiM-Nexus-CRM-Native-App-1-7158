@@ -93,7 +93,7 @@ const DealCard = ({ deal, onClick }) => {
 };
 
 const Pipeline = () => {
-  const { deals, moveDealStage, campaigns } = useCrm();
+  const { deals, moveDealStage, campaigns, loading, error } = useCrm();
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id || 'all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inspectedDeal, setInspectedDeal] = useState(null);
@@ -118,6 +118,40 @@ const Pipeline = () => {
     const dealId = e.dataTransfer.getData('dealId');
     if (dealId) moveDealStage(dealId, stage);
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-slate-50">
+        <SafeIcon icon={FiIcons.FiRefreshCw} className="animate-spin text-4xl text-indigo-500 mb-4" />
+        <h2 className="text-xl font-bold text-slate-800">Loading Pipeline...</h2>
+        <p className="text-sm text-slate-500 mt-2">Retrieving active deals from the core.</p>
+      </div>
+    );
+  }
+
+  if (error || !deals || deals.length === 0) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-slate-50">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center max-w-md">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
+            <SafeIcon icon={FiIcons.FiDatabase} className="text-2xl" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">No Data Found</h2>
+          <p className="text-sm text-slate-500 mb-6">
+            {error ? "There was an error communicating with the database." : "Your pipeline is currently empty. Initialize a deal to get started."}
+          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center space-x-2 shadow-lg shadow-indigo-100"
+          >
+            <SafeIcon icon={FiIcons.FiPlus} />
+            <span>Initialize Deal</span>
+          </button>
+        </div>
+        <CreateDealModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-slate-50">

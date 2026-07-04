@@ -14,6 +14,7 @@ import Workflows from './pages/Workflows';
 import Campaigns from './pages/Campaigns';
 import OperationalSwarm from './pages/OperationalSwarm';
 import './App.css';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <div className="flex-1 flex flex-col h-screen overflow-hidden">
             <TopNav />
             <main className="flex-1 overflow-y-auto custom-scrollbar">
+              <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/pipeline" element={<Pipeline />} />
@@ -36,6 +38,7 @@ function App() {
                 <Route path="/swarm" element={<OperationalSwarm />} />
                 <Route path="/settings" element={<Workflows />} />
               </Routes>
+            </ErrorBoundary>
             </main>
           </div>
         </div>

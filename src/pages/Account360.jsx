@@ -9,8 +9,42 @@ const Account360 = () => {
   const navigate = useNavigate();
   const { accounts, contacts, deals, activities } = useCrm();
 
+  const { loading, error } = useCrm();
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center p-8">
+        <SafeIcon icon={FiIcons.FiRefreshCw} className="animate-spin text-4xl text-indigo-500 mb-4" />
+        <h2 className="text-xl font-bold text-slate-800">Loading Account...</h2>
+        <p className="text-sm text-slate-500 mt-2">Retrieving firmographics from the core.</p>
+      </div>
+    );
+  }
+
   const account = accounts.find(a => a.id === id);
-  if (!account) return <div className="p-8 text-center text-slate-500">Account not found.</div>;
+
+  if (error || !account) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center p-8">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center max-w-md w-full">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
+            <SafeIcon icon={FiIcons.FiBriefcase} className="text-2xl" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Account Not Found</h2>
+          <p className="text-sm text-slate-500 mb-6">
+            {error ? "There was an error communicating with the database." : "The requested account could not be found or has been removed."}
+          </p>
+          <button
+            onClick={() => navigate('/accounts')}
+            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center space-x-2"
+          >
+            <SafeIcon icon={FiIcons.FiArrowLeft} />
+            <span>Return to Accounts</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const accountContacts = contacts.filter(c => c.account_id === id);
   const accountDeals = deals.filter(d => d.account_id === id);
