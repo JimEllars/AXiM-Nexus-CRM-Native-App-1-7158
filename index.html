@@ -4,13 +4,46 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="A Vite + React application optimized for SEO with proper meta tags and titles." />
-    <meta name="keywords" content="React, Vite, SEO, Web Development, JavaScript" />
-    <meta name="author" content="Your Name" />
-    <meta property="og:title" content="Vite + React SEO-Friendly App" />
-    <meta property="og:description" content="A Vite + React application optimized for SEO." />
-    <meta property="og:type" content="website" />
-    <title>Vite + React</title>
+    <meta name="description" content="AXiM Nexus CRM - Native Interface" />
+    <title>AXiM Nexus CRM</title>
+
+    <!-- Lightweight Edge Telemetry -->
+    <script>
+      (function() {
+        const telemetryEndpoint = '/cdn-cgi/telemetry'; // Placeholder for CF Worker endpoint
+        const start = performance.now();
+
+        window.addEventListener('load', () => {
+          const loadTime = performance.now() - start;
+          // Silently report page load time
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon(telemetryEndpoint, JSON.stringify({ type: 'page_load', duration: loadTime }));
+          }
+        });
+
+        window.addEventListener('error', (event) => {
+          // Silently report errors
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon(telemetryEndpoint, JSON.stringify({
+              type: 'error',
+              message: event.message,
+              source: event.filename,
+              lineno: event.lineno,
+              colno: event.colno
+            }));
+          }
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon(telemetryEndpoint, JSON.stringify({
+              type: 'unhandled_rejection',
+              reason: event.reason?.message || event.reason
+            }));
+          }
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

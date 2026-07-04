@@ -17,6 +17,11 @@ const BulkAddContactsModal = ({ isOpen, onClose }) => {
     setError(null);
 
     try {
+      // TODO: Route these inputs to our Cloudflare Worker Enrichment Bridge in the next sprint.
+      // Direct database writes are currently disabled for this ingress method.
+      throw new Error('Direct bulk ingestion is temporarily disabled. Please route through the Worker Enrichment Bridge.');
+
+      /*
       const lines = csvText.trim().split('\n');
       if (lines.length === 0 || (lines.length === 1 && lines[0].trim() === '')) {
         throw new Error('No data provided');
@@ -39,6 +44,7 @@ const BulkAddContactsModal = ({ isOpen, onClose }) => {
       await bulkAddContacts(contacts);
       onClose();
       setCsvText('');
+      */
     } catch (err) {
       setError(err.message);
     } finally {

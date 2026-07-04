@@ -20,10 +20,7 @@ export const CrmProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
   const [isSweeping, setIsSweeping] = useState(false);
   
-  const [workflows, setWorkflows] = useState([
-    { id: 'wf-1', name: 'B2B Initial Outreach', target_entity_type: 'CONTACT', is_active: true, trigger_conditions: { type: 'SCRAPE_EVENT' }, action_payload: { template: 'b2b_intro_01', delay: '2h' } },
-    { id: 'wf-2', name: 'High Value Deal Alert', target_entity_type: 'DEAL', is_active: true, trigger_conditions: { min_amount: 100000 }, action_payload: { notify: 'admin_slack' } }
-  ]);
+  const [workflows, setWorkflows] = useState([]);
 
   const loadAllData = async () => {
     setLoading(true);
@@ -36,12 +33,12 @@ export const CrmProvider = ({ children }) => {
         campaignService.getAll(),
         taskService.getAll()
       ]);
-      setAccounts(accs);
-      setContacts(cons);
-      setDeals(dls);
-      setActivities(acts);
-      setCampaigns(camps);
-      setTasks(tsks);
+      setAccounts(accs || []);
+      setContacts(cons || []);
+      setDeals(dls || []);
+      setActivities(acts || []);
+      setCampaigns(camps || []);
+      setTasks(tsks || []);
     } catch (error) {
       console.error('Failed to load CRM data:', error);
     } finally {
@@ -66,6 +63,7 @@ export const CrmProvider = ({ children }) => {
   const updateDeal = async (dealId, updates) => {
     try {
       const deal = deals.find(d => d.id === dealId);
+      if (!deal) return;
       const updatedDeal = await dealService.update(dealId, { ...deal, ...updates });
       setDeals(prev => prev.map(d => d.id === dealId ? updatedDeal : d));
     } catch (e) { console.error(e); }
@@ -118,6 +116,7 @@ export const CrmProvider = ({ children }) => {
   const toggleTaskStatus = async (taskId) => {
     try {
       const task = tasks.find(t => t.id === taskId);
+      if(!task) return;
       const newStatus = task.status === 'DONE' ? 'TODO' : 'DONE';
       const updatedTask = await taskService.update(taskId, { ...task, status: newStatus });
       setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
