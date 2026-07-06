@@ -15,13 +15,22 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     this.setState({ error, errorInfo });
     // Log error cleanly for Cloudflare Pages analytics, asynchronously to not block the main thread
-    setTimeout(() => {
-      console.error(JSON.stringify({
+    setTimeout(async () => {
+      // Attempt to retrieve user UUID from supabase if possible, or from local storage if standard session exists.
+      let userUUID = 'unknown';
+      try {
+        const sbStr = localStorage.getItem('sb-' + 'supabase-project-ref' + '-auth-token') || localStorage.getItem('supabase.auth.token'); // Fallback or standard parse isn't fully reliable here, better to just rely on userUUID passed via props, but ErrorBoundary is at top level.
+        // Let's use a simpler approach. We will just check if we can get it from supabase client.
+      } catch (e) { /* ignore */ }
+
+      console.error('[AXiM-Edge-Telemetry-Capture] ' + JSON.stringify({
         level: 'error',
         message: error.message || 'Unknown error',
         stack: error.stack,
         componentStack: errorInfo?.componentStack || '',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        userUUID: window.AXIM_USER_UUID || 'unknown'
       }, null, 2));
     }, 0);
   }

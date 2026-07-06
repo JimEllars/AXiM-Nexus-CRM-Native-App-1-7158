@@ -5,23 +5,16 @@ import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
 const Dashboard = () => {
-  const { deals, contacts, activities, runOnyxSweep, isSweeping, tasks, loading } = useCrm();
+  const { deals, contacts, activities, runOnyxSweep, isSweeping, tasks, loading, session } = useCrm();
   const navigate = useNavigate();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="flex flex-col items-center space-y-4">
-          <SafeIcon icon={FiIcons.FiCpu} className="text-4xl text-indigo-500 animate-spin" />
-          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Onyx Core Initializing...</p>
-        </div>
-      </div>
-    );
-  }
 
-  const activeDeals = deals.filter(d => ['PROSPECT', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'].includes(d.stage));
+
+  const myDeals = deals.filter(d => d.assigned_to === session?.user?.id);
+  const activeDeals = myDeals.filter(d => ['PROSPECT', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'].includes(d.stage));
   const totalValue = activeDeals.reduce((sum, d) => sum + d.amount, 0);
-  const pendingTasks = tasks.filter(t => t.status === 'TODO');
+  const myTasks = tasks.filter(t => t.assigned_to === session?.user?.id);
+  const pendingTasks = myTasks.filter(t => t.status === 'TODO');
 
   return (
     <div className="p-8 max-w-7xl mx-auto w-full space-y-8">
@@ -45,7 +38,18 @@ const Dashboard = () => {
 
       {/* Grid Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
+        {loading ? (
+          [1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4 animate-pulse">
+              <div className="w-12 h-12 rounded-xl bg-slate-200"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                <div className="h-6 bg-slate-200 rounded w-3/4"></div>
+              </div>
+            </div>
+          ))
+        ) : (
+        [
           { label: 'Pipeline Velocity', val: `$${(totalValue/1000).toFixed(1)}k`, icon: FiIcons.FiTrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
           { label: 'Pending Actions', val: pendingTasks.length, icon: FiIcons.FiCheckCircle, color: 'text-indigo-600', bg: 'bg-indigo-50' },
           { label: 'Onyx Leads', val: contacts.length, icon: FiIcons.FiZap, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -60,8 +64,8 @@ const Dashboard = () => {
               <div className="text-xl font-black text-slate-900">{stat.val}</div>
             </div>
           </div>
-        ))}
-      </div>
+        ))
+        )}      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
@@ -75,7 +79,18 @@ const Dashboard = () => {
               <button onClick={() => navigate('/analytics')} className="text-xs font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-widest">Full Log</button>
             </div>
             <div className="divide-y divide-slate-50">
-              {activities.length > 0 ? activities.slice(0, 5).map((act, i) => (
+              {loading ? (
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="p-5 flex items-start space-x-4 animate-pulse">
+                    <div className="mt-1 w-2.5 h-2.5 rounded-full shrink-0 bg-slate-200"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-slate-200 rounded w-1/4"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+              activities.filter(a => a.logged_by_agent_id === session?.user?.id || a.agent_id === session?.user?.id).length > 0 ? activities.filter(a => a.logged_by_agent_id === session?.user?.id || a.agent_id === session?.user?.id).slice(0, 5).map((act, i) => (
                 <div key={i} className="p-5 flex items-start space-x-4 hover:bg-slate-50 transition-colors group">
                   <div className={`mt-1 w-2.5 h-2.5 rounded-full shrink-0 ${act.type === 'ONYX_INTERVENTION' ? 'bg-indigo-600 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'bg-slate-300'}`}></div>
                   <div className="flex-1">
@@ -92,8 +107,8 @@ const Dashboard = () => {
                 </div>
               )) : (
                 <div className="p-8 text-center text-slate-400 text-xs italic">Waiting for incoming signals...</div>
-              )}
-            </div>
+              )
+            )}</div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -130,7 +145,22 @@ const Dashboard = () => {
               <SafeIcon icon={FiIcons.FiCpu} className="text-indigo-600" />
             </h3>
             <div className="space-y-4">
-              {deals.filter(d => d.probability_score > 70).slice(0, 4).map((deal, i) => (
+              {loading ? (
+                [1, 2].map((i) => (
+                  <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 animate-pulse">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                      <div className="h-3 bg-slate-200 rounded w-1/4"></div>
+                    </div>
+                    <div className="flex justify-between items-center mt-4">
+                      <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+                      <div className="h-3 bg-slate-200 rounded w-1/4"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+              <>
+              {myDeals.filter(d => d.probability_score > 70).slice(0, 4).map((deal, i) => (
                 <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-all cursor-pointer group" onClick={() => navigate('/pipeline')}>
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-xs font-black text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">{deal.title}</span>
@@ -142,10 +172,11 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
-              {deals.filter(d => d.probability_score > 70).length === 0 && (
+              {myDeals.filter(d => d.probability_score > 70).length === 0 && (
                 <div className="p-4 text-center text-slate-400 text-xs italic">No high-probability deals detected.</div>
               )}
-            </div>
+              </>
+            )}</div>
           </div>
 
           <div className="bg-indigo-900 rounded-2xl p-6 text-white overflow-hidden relative">

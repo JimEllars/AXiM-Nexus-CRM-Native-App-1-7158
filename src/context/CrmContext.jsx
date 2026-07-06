@@ -7,6 +7,8 @@ import { activityService } from '../services/activityService';
 import { campaignService } from '../services/campaignService';
 import { taskService } from '../services/taskService';
 import { supabase } from '../lib/supabase';
+import SafeIcon from '../common/SafeIcon';
+import * as FiIcons from 'react-icons/fi';
 
 const CrmContext = createContext();
 
@@ -228,9 +230,29 @@ export const CrmProvider = ({ children }) => {
 
   if (authLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 flex-col space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-        <p className="text-slate-500 font-medium text-sm animate-pulse">Initializing AXiM Nexus...</p>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 flex-col space-y-6">
+        <div className="relative">
+          <div className="absolute inset-0 bg-indigo-500 rounded-full blur-xl opacity-20 animate-pulse"></div>
+          <div className="w-20 h-20 bg-slate-800 rounded-2xl flex items-center justify-center relative border border-slate-700 shadow-2xl">
+            <SafeIcon icon={FiIcons.FiCpu} className="text-3xl text-indigo-400 animate-pulse" />
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center space-y-3">
+          <h2 className="text-xl font-black text-white tracking-widest uppercase">AXiM Nexus</h2>
+          <div className="flex items-center space-x-3">
+            <div className="flex space-x-1">
+              <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+            <p className="text-indigo-400/80 font-mono text-xs uppercase tracking-widest">Hydrating Core Session</p>
+          </div>
+        </div>
+
+        <div className="w-48 h-1 bg-slate-800 rounded-full overflow-hidden mt-8">
+          <div className="h-full bg-indigo-500 w-full animate-[progress_1.5s_ease-in-out_infinite] origin-left"></div>
+        </div>
       </div>
     );
   }
