@@ -17,6 +17,9 @@ import './App.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 
 const MainLayout = ({ children }) => (
@@ -38,6 +41,7 @@ const MainLayout = ({ children }) => (
 function App() {
   return (
     <CrmProvider>
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="light" />
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
