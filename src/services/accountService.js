@@ -1,8 +1,8 @@
 import { supabase } from '../lib/supabase';
 
 export const accountService = {
-  async getAll(offset = 0, searchQuery = '') {
-    let query = supabase.from('accounts').select('*').range(offset, offset + 49).limit(50);
+  async getAll(offset = 0, searchQuery = '', sortConfig = { field: 'created_at', ascending: false }) {
+    let query = supabase.from('accounts').select('*').range(offset, offset + 49).limit(50).order(sortConfig.field, { ascending: sortConfig.ascending, nullsFirst: false });
 
     if (searchQuery) {
       query = query.or(`company_name.ilike.%${searchQuery}%,industry.ilike.%${searchQuery}%`);

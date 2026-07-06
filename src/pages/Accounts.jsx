@@ -11,13 +11,14 @@ const Accounts = () => {
   const [localAccounts, setLocalAccounts] = useState([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [sortConfig, setSortConfig] = useState({ field: 'created_at', ascending: false });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const data = await accountService.getAll(0, debouncedSearchTerm);
+        const data = await accountService.getAll(0, debouncedSearchTerm, sortConfig);
         setLocalAccounts(data);
         setOffset(0);
         setHasMore(data.length === 50);
@@ -26,12 +27,12 @@ const Accounts = () => {
       }
     };
     fetchAccounts();
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, sortConfig]);
 
   const loadMore = async () => {
     try {
       const nextOffset = offset + 50;
-      const data = await accountService.getAll(nextOffset, debouncedSearchTerm);
+      const data = await accountService.getAll(nextOffset, debouncedSearchTerm, sortConfig);
       setLocalAccounts(prev => [...prev, ...data]);
       setOffset(nextOffset);
       setHasMore(data.length === 50);
@@ -68,6 +69,20 @@ const Accounts = () => {
               className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
             />
           </div>
+
+          <select
+            value={sortConfig.field + '-' + sortConfig.ascending}
+            onChange={(e) => {
+              const [field, ascendingStr] = e.target.value.split('-');
+              setSortConfig({ field, ascending: ascendingStr === 'true' });
+            }}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 font-bold"
+          >
+            <option value="created_at-false">Sort by: Newest</option>
+            <option value="created_at-true">Sort by: Oldest</option>
+            <option value="annual_revenue-false">Sort by: Revenue</option>
+            <option value="company_name-true">Sort by: Name</option>
+          </select>
           <button className="bg-slate-900 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-indigo-100 shrink-0">
             <SafeIcon icon={FiIcons.FiPlus} />
             <span>New Account</span>
