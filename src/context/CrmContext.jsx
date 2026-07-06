@@ -1,3 +1,4 @@
+import Login from "../components/Login";
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 import { accountService } from '../services/accountService';
 import { contactService } from '../services/contactService';
@@ -23,6 +24,24 @@ export const CrmProvider = ({ children }) => {
   const [isSweeping, setIsSweeping] = useState(false);
   
   const [workflows, setWorkflows] = useState([]);
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
 
   const loadAllData = async () => {
     setLoading(true);
@@ -51,6 +70,7 @@ export const CrmProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    if (!session) return;
     loadAllData();
 
     // Supabase Realtime Prep: Subscription for crm.deals table
@@ -64,7 +84,14 @@ export const CrmProvider = ({ children }) => {
         },
         (payload) => {
           console.log('Realtime Deals update received:', payload);
-          // In future sprints, wire this up to update the UI deals state
+          if (payload.eventType === 'UPDATE') {
+            setDeals(prevDeals => prevDeals.map(deal => {
+              if (deal.id === payload.new.id) {
+                return { ...deal, ...payload.new };
+              }
+              return deal;
+            }));
+          }
         }
       )
       .subscribe();
@@ -72,7 +99,7 @@ export const CrmProvider = ({ children }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [session]);
 
   const addDeal = async (dealData) => {
     try {
@@ -163,9 +190,21 @@ export const CrmProvider = ({ children }) => {
     } catch (e) { console.error(e); } finally { setIsSweeping(false); }
   }, [deals]);
 
+  if (authLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Login />;
+  }
+
   return (
     <CrmContext.Provider value={{
-      loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
+      session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
       addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, runOnyxSweep, refreshData: loadAllData
     }}>
       {children}

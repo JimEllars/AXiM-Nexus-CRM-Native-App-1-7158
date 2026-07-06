@@ -13,10 +13,30 @@ const Account360 = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-full items-center justify-center p-8">
-        <SafeIcon icon={FiIcons.FiRefreshCw} className="animate-spin text-4xl text-indigo-500 mb-4" />
-        <h2 className="text-xl font-bold text-slate-800">Loading Account...</h2>
-        <p className="text-sm text-slate-500 mt-2">Retrieving firmographics from the core.</p>
+      <div className="p-4 lg:p-8 max-w-7xl mx-auto w-full space-y-8 animate-pulse">
+        <div className="flex justify-between items-center mb-8">
+          <div className="h-6 bg-slate-200 rounded w-24"></div>
+          <div className="flex space-x-3">
+            <div className="h-10 bg-slate-200 rounded w-32"></div>
+            <div className="h-10 bg-slate-200 rounded w-32"></div>
+          </div>
+        </div>
+        <div className="h-40 bg-white border border-slate-200 rounded-2xl p-8 mb-8">
+          <div className="h-8 bg-slate-200 rounded w-1/3 mb-4"></div>
+          <div className="flex space-x-4">
+            <div className="h-4 bg-slate-200 rounded w-24"></div>
+            <div className="h-4 bg-slate-200 rounded w-24"></div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="space-y-6">
+             <div className="h-64 bg-white border border-slate-200 rounded-2xl"></div>
+             <div className="h-64 bg-white border border-slate-200 rounded-2xl"></div>
+          </div>
+          <div className="lg:col-span-2">
+             <div className="h-[500px] bg-white border border-slate-200 rounded-2xl"></div>
+          </div>
+        </div>
       </div>
     );
   }
