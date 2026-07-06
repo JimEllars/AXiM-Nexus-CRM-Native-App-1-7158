@@ -1,14 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { toast } from 'react-toastify';
+
 import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreateDealModal from '../components/modals/CreateDealModal';
 import DealDetailModal from '../components/modals/DealDetailModal';
+import { dealService } from '../services/dealService';
+import { activityService } from '../services/activityService';
+
 
 const STAGES = ['PROSPECT', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST'];
 
-const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick }) => {
+const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick, movingDealIds }) => {
   const totalValue = deals.reduce((sum, d) => sum + d.amount, 0);
 
   return (
@@ -31,7 +36,7 @@ const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick }) => {
       <div className="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
         <AnimatePresence>
           {deals.map(deal => (
-            <DealCard key={deal.id} deal={deal} onClick={() => onDealClick(deal)} />
+            <DealCard key={deal.id} deal={deal} onClick={() => onDealClick(deal)} isMoving={movingDealIds?.has(deal.id)} />
           ))}
         </AnimatePresence>
         {deals.length === 0 && (
@@ -44,7 +49,7 @@ const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick }) => {
   );
 };
 
-const DealCard = ({ deal, onClick }) => {
+const DealCard = ({ deal, onClick, isMoving }) => {
   const { contacts, accounts } = useCrm();
   const contact = contacts.find(c => c.id === deal.primary_contact_id);
   const account = accounts.find(a => a.id === deal.account_id);
@@ -63,15 +68,18 @@ const DealCard = ({ deal, onClick }) => {
     <motion.div
       layout
       initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: isMoving ? 0.5 : 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       draggable
       onDragStart={handleDragStart}
       onClick={onClick}
-      className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing border-l-4 border-l-indigo-500 group"
+      className={`bg-white p-4 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing border-l-4 border-l-indigo-500 group ${isMoving ? 'pointer-events-none' : ''}`}
     >
       <div className="flex justify-between items-start mb-2">
         <h4 className="font-bold text-slate-800 text-sm leading-tight group-hover:text-indigo-600 transition-colors">{deal.title}</h4>
+        {isMoving && (
+            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-600"></div>
+        )}
       </div>
       
       <div className="mb-3 text-[11px] text-slate-500 font-medium flex items-center space-x-1">
@@ -93,15 +101,21 @@ const DealCard = ({ deal, onClick }) => {
 };
 
 const Pipeline = () => {
-  const { deals, moveDealStage, campaigns, loading, error, realtimeStatus } = useCrm();
+  const { deals, moveDealStage, campaigns, loading, error, realtimeStatus, session } = useCrm();
+  const [localDeals, setLocalDeals] = useState(deals);
+  const [movingDealIds, setMovingDealIds] = useState(new Set());
+
+  useEffect(() => {
+    setLocalDeals(deals);
+  }, [deals]);
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id || 'all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inspectedDeal, setInspectedDeal] = useState(null);
 
   const filteredDeals = useMemo(() => {
-    if (selectedCampaignId === 'all') return deals;
-    return deals.filter(d => d.campaign_id === selectedCampaignId);
-  }, [deals, selectedCampaignId]);
+    if (selectedCampaignId === 'all') return localDeals;
+    return localDeals.filter(d => d.campaign_id === selectedCampaignId);
+  }, [localDeals, selectedCampaignId]);
 
   const campaignStats = useMemo(() => {
     return {
@@ -113,11 +127,48 @@ const Pipeline = () => {
 
   const handleDragOver = (e) => { e.preventDefault(); };
 
-  const handleDrop = (e, stage) => {
+
+  const handleDrop = async (e, stage) => {
     e.preventDefault();
     const dealId = e.dataTransfer.getData('dealId');
-    if (dealId) moveDealStage(dealId, stage);
+    if (!dealId) return;
+
+    const deal = localDeals.find(d => d.id === dealId);
+    if (!deal || deal.stage === stage) return;
+
+    const originalStage = deal.stage;
+
+    // Optimistic update
+    setLocalDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage } : d));
+    setMovingDealIds(prev => new Set(prev).add(dealId));
+
+    try {
+      await dealService.update(dealId, { stage });
+
+      // Activity log for CLOSED_WON or CLOSED_LOST
+      if (stage === 'CLOSED_WON' || stage === 'CLOSED_LOST') {
+         await activityService.create({
+            account_id: deal.account_id,
+            type: stage === 'CLOSED_WON' ? 'DEAL_WON' : 'DEAL_LOST',
+            description: `Deal moved to ${stage === 'CLOSED_WON' ? 'Closed Won' : 'Closed Lost'}`,
+            logged_by_agent_id: session?.user?.id || 'system'
+         });
+      }
+
+    } catch (err) {
+      console.error("Failed to update deal stage:", err);
+      // Revert optimistic update
+      setLocalDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage: originalStage } : d));
+      toast.error("Failed to move deal: Network Error");
+    } finally {
+      setMovingDealIds(prev => {
+        const next = new Set(prev);
+        next.delete(dealId);
+        return next;
+      });
+    }
   };
+
 
   if (loading) {
     return (
@@ -237,6 +288,7 @@ const Pipeline = () => {
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDealClick={setInspectedDeal}
+              movingDealIds={movingDealIds}
             />
           ))}
         </div>
