@@ -1,4 +1,3 @@
-import Login from "../components/Login";
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 import { accountService } from '../services/accountService';
 import { contactService } from '../services/contactService';
@@ -26,6 +25,7 @@ export const CrmProvider = ({ children }) => {
   const [workflows, setWorkflows] = useState([]);
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [realtimeStatus, setRealtimeStatus] = useState('connected');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -94,7 +94,20 @@ export const CrmProvider = ({ children }) => {
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          console.error('Realtime subscription error:', err);
+          setRealtimeStatus('error');
+        } else if (status === 'SUBSCRIBED') {
+          setRealtimeStatus('connected');
+        } else if (status === 'CLOSED') {
+          setRealtimeStatus('disconnected');
+        } else if (status === 'CHANNEL_ERROR') {
+          setRealtimeStatus('error');
+        } else if (status === 'TIMED_OUT') {
+          setRealtimeStatus('error');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -192,20 +205,19 @@ export const CrmProvider = ({ children }) => {
 
   if (authLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div className="flex h-screen items-center justify-center bg-slate-50 flex-col space-y-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+        <p className="text-slate-500 font-medium text-sm animate-pulse">Initializing AXiM Nexus...</p>
       </div>
     );
   }
 
-  if (!session) {
-    return <Login />;
-  }
+
 
   return (
     <CrmContext.Provider value={{
       session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
-      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, runOnyxSweep, refreshData: loadAllData
+      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading
     }}>
       {children}
     </CrmContext.Provider>
