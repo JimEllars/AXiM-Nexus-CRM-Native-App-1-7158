@@ -1,3 +1,4 @@
+import { toast } from 'react-toastify';
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 import { accountService } from '../services/accountService';
 import { contactService } from '../services/contactService';
@@ -27,6 +28,7 @@ export const CrmProvider = ({ children }) => {
   const [authLoading, setAuthLoading] = useState(true);
   const [realtimeStatus, setRealtimeStatus] = useState('connected');
 
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -35,12 +37,33 @@ export const CrmProvider = ({ children }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
+      if (event === 'SIGNED_OUT') {
+        window.location.href = '/login';
+      }
     });
 
-    return () => subscription.unsubscribe();
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      if (response.status === 401 || response.status === 403) {
+         const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
+         if (url.includes('supabase.co')) {
+             toast.error('Session expired. Please log in again.');
+             supabase.auth.signOut();
+             window.location.href = '/login';
+         }
+      }
+      return response;
+    };
+
+    return () => {
+      subscription.unsubscribe();
+      window.fetch = originalFetch;
+    };
   }, []);
+
 
 
   const loadAllData = async () => {

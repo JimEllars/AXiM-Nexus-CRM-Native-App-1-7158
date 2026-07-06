@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CrmProvider } from './context/CrmContext';
 import Sidebar from './components/Sidebar';
@@ -20,23 +20,26 @@ import Login from './components/Login';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+const MainLayout = ({ children }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-
-const MainLayout = ({ children }) => (
-  <ProtectedRoute>
-    <div className="flex h-screen bg-slate-100 overflow-hidden font-sans text-slate-900">
-      <Sidebar />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <TopNav />
-        <main className="flex-1 overflow-y-auto custom-scrollbar">
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
-        </main>
+  return (
+    <ProtectedRoute>
+      <div className="flex h-screen bg-slate-100 overflow-hidden font-sans text-slate-900">
+        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+        <div className="flex-1 flex flex-col h-screen overflow-hidden w-full">
+          <TopNav toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+          <main className="flex-1 overflow-y-auto custom-scrollbar">
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+          </main>
+        </div>
       </div>
-    </div>
-  </ProtectedRoute>
-);
+    </ProtectedRoute>
+  );
+};
+
 
 function App() {
   return (

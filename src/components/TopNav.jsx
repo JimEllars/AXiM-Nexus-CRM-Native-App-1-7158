@@ -2,11 +2,17 @@ import React from 'react';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
-const TopNav = () => {
+const TopNav = ({ toggleSidebar }) => {
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-8 z-10 w-full flex-shrink-0">
+    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-10 w-full flex-shrink-0">
       <div className="flex items-center space-x-4 flex-1">
-        <div className="relative w-full max-w-md">
+        <button
+          onClick={toggleSidebar}
+          className="md:hidden p-2 text-slate-500 hover:text-indigo-600 focus:outline-none transition-colors"
+        >
+          <SafeIcon icon={FiIcons.FiMenu} className="text-2xl" />
+        </button>
+        <div className="relative w-full max-w-md hidden sm:block">
           <SafeIcon icon={FiIcons.FiSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
