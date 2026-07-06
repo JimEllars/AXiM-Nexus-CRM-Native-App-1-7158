@@ -38,7 +38,24 @@ const OperationalSwarm = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <h2 className="text-lg font-black text-slate-900 tracking-tight mb-4 flex items-center space-x-2">
+              <SafeIcon icon={FiIcons.FiActivity} className="text-indigo-600" />
+              <span>Active Swarm Dispatches</span>
+            </h2>
+            <div className="bg-slate-50 border border-slate-200 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center">
+              <SafeIcon icon={FiIcons.FiInbox} className="text-3xl text-slate-300 mb-3" />
+              <p className="text-slate-500 font-medium">No active dispatches in the matrix.</p>
+              <p className="text-xs text-slate-400 mt-1">Onyx Mk3 will generate tasks here based on deal activity.</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-lg font-black text-slate-900 tracking-tight mb-4 flex items-center space-x-2">
+              <SafeIcon icon={FiIcons.FiList} className="text-slate-600" />
+              <span>Task Queue</span>
+            </h2>
           {tasks.map(task => (
             <div key={task.id} className={`bg-white p-5 rounded-2xl border transition-all flex items-center space-x-4 ${task.status === 'DONE' ? 'opacity-50 grayscale' : 'border-slate-200 shadow-sm hover:border-indigo-200'}`}>
               <button 
@@ -75,6 +92,7 @@ const OperationalSwarm = () => {
               </div>
             </div>
           ))}
+          </div>
         </div>
 
         <div className="space-y-6">

@@ -1,22 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import CreateContactModal from '../components/modals/CreateContactModal';
 import BulkAddContactsModal from '../components/modals/BulkAddContactsModal';
+import { useDebounce } from '../hooks/useDebounce';
+import { contactService } from '../services/contactService';
 
 const Directory = () => {
-  const { contacts, accounts } = useCrm();
+  const { accounts } = useCrm();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredContacts = contacts.filter(c => 
-    `${c.first_name} ${c.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [localContacts, setLocalContacts] = useState([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const data = await contactService.getAll(0, debouncedSearchTerm);
+        setLocalContacts(data);
+        setOffset(0);
+        setHasMore(data.length === 50);
+      } catch (error) {
+        console.error("Error fetching contacts:", error);
+      }
+    };
+    fetchContacts();
+  }, [debouncedSearchTerm]);
+
+  const loadMore = async () => {
+    try {
+      const nextOffset = offset + 50;
+      const data = await contactService.getAll(nextOffset, debouncedSearchTerm);
+      setLocalContacts(prev => [...prev, ...data]);
+      setOffset(nextOffset);
+      setHasMore(data.length === 50);
+    } catch (error) {
+      console.error("Error fetching more contacts:", error);
+    }
+  };
 
   return (
     <div className="p-8 max-w-7xl mx-auto w-full">
@@ -64,7 +93,7 @@ const Directory = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filteredContacts.map(contact => {
+            {localContacts.map(contact => {
               const account = accounts.find(a => a.id === contact.account_id);
               return (
                 <tr key={contact.id} className="hover:bg-slate-50 transition-colors group">
@@ -103,12 +132,24 @@ const Directory = () => {
             })}
           </tbody>
         </table>
-        {filteredContacts.length === 0 && (
+        {localContacts.length === 0 && (
           <div className="p-12 text-center text-slate-400 italic text-sm">
             No entities found matching your criteria.
           </div>
         )}
       </div>
+
+      {hasMore && (
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={loadMore}
+            className="px-6 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-indigo-300 transition-all shadow-sm flex items-center space-x-2"
+          >
+            <SafeIcon icon={FiIcons.FiRefreshCw} />
+            <span>Load More</span>
+          </button>
+        </div>
+      )}
 
       <CreateContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <BulkAddContactsModal isOpen={isBulkModalOpen} onClose={() => setIsBulkModalOpen(false)} />
