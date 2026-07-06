@@ -1,16 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
+import { useDebounce } from '../hooks/useDebounce';
+import { accountService } from '../services/accountService';
 
 const Accounts = () => {
-  const { accounts, deals, contacts } = useCrm();
+  const { deals, contacts } = useCrm();
   const [searchTerm, setSearchTerm] = useState('');
+  const [localAccounts, setLocalAccounts] = useState([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
-  const filteredAccounts = accounts.filter(acc => 
-    acc.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    acc.industry.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const data = await accountService.getAll(0, debouncedSearchTerm);
+        setLocalAccounts(data);
+        setOffset(0);
+        setHasMore(data.length === 50);
+      } catch (error) {
+        console.error("Error fetching accounts:", error);
+      }
+    };
+    fetchAccounts();
+  }, [debouncedSearchTerm]);
+
+  const loadMore = async () => {
+    try {
+      const nextOffset = offset + 50;
+      const data = await accountService.getAll(nextOffset, debouncedSearchTerm);
+      setLocalAccounts(prev => [...prev, ...data]);
+      setOffset(nextOffset);
+      setHasMore(data.length === 50);
+    } catch (error) {
+      console.error("Error fetching more accounts:", error);
+    }
+  };
 
   const getAccountMetrics = (accountId) => {
     const accDeals = deals.filter(d => d.account_id === accountId);
@@ -48,7 +76,7 @@ const Accounts = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAccounts.map(acc => {
+        {localAccounts.map(acc => {
           const metrics = getAccountMetrics(acc.id);
           return (
             <div key={acc.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-indigo-300 transition-all group">
@@ -93,6 +121,18 @@ const Accounts = () => {
           );
         })}
       </div>
+
+      {hasMore && (
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={loadMore}
+            className="px-6 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-indigo-300 transition-all shadow-sm flex items-center space-x-2"
+          >
+            <SafeIcon icon={FiIcons.FiRefreshCw} />
+            <span>Load More</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
