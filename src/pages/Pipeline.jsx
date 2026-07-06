@@ -279,7 +279,7 @@ const Pipeline = () => {
       </div>
 
       <div className="flex-1 overflow-x-auto p-8">
-        <div className="flex space-x-6 h-full pb-4 items-start">
+        <div className="flex space-x-6 h-full pb-4 items-start w-max">
           {STAGES.map(stage => (
             <StageColumn 
               key={stage} 

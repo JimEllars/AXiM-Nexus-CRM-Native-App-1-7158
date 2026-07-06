@@ -90,11 +90,12 @@ const Accounts = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {localAccounts.map(acc => {
+      <div className="overflow-x-auto w-full pb-4">
+        <div className="flex flex-row md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-max md:min-w-0">
+          {localAccounts.map(acc => {
           const metrics = getAccountMetrics(acc.id);
           return (
-            <div key={acc.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-indigo-300 transition-all group">
+            <div key={acc.id} className="w-[85vw] sm:w-[320px] md:w-auto bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:border-indigo-300 transition-all group">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="w-12 h-12 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
@@ -135,6 +136,7 @@ const Accounts = () => {
             </div>
           );
         })}
+        </div>
       </div>
 
       {hasMore && (
