@@ -185,16 +185,27 @@ const Customer360 = () => {
             
             <div className="p-8 flex-1 overflow-y-auto custom-scrollbar">
               <div className="space-y-8 relative before:absolute before:inset-0 before:ml-4 before:h-full before:w-0.5 before:bg-slate-100">
-                {contactActivities.map((activity) => (
+                {contactActivities.map((activity) => {
+                  const type = activity.activity_type || activity.type || 'SYSTEM_EVENT';
+                  const notes = typeof activity.notes === 'string' ? JSON.parse(activity.notes) : (activity.notes || {});
+                  const description = notes.description || activity.description || '';
+
+                  let typeColor = 'text-slate-500';
+                  if (type.toLowerCase().includes('email')) typeColor = 'text-blue-600';
+                  else if (type.toLowerCase().includes('stage_change')) typeColor = 'text-green-600';
+                  else if (type.toLowerCase().includes('onyx')) typeColor = 'text-purple-600';
+                  else if (type === 'ONYX_INTERVENTION') typeColor = 'text-indigo-600';
+
+                  return (
                   <div key={activity.id} className="relative flex items-start space-x-6 group">
                     <div className="z-10 shrink-0">
-                      <ActivityIcon type={activity.type} />
+                      <ActivityIcon type={type} />
                     </div>
                     <div className="flex-1 pb-8 border-b border-slate-50 last:border-0">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                         <div className="flex items-center space-x-3">
-                          <span className={`text-[10px] font-black uppercase tracking-widest ${activity.type === 'ONYX_INTERVENTION' ? 'text-indigo-600' : 'text-slate-500'}`}>
-                            {activity.type.replace('_', ' ')}
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${typeColor}`}>
+                            {type.replace('_', ' ')}
                           </span>
                           <span className="text-[10px] text-slate-400 font-mono">
                             {new Date(activity.created_at).toLocaleString()}
@@ -204,7 +215,7 @@ const Customer360 = () => {
                           <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded self-start sm:self-auto">Verified Admin</span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-700 leading-relaxed font-medium">{activity.description}</p>
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium">{description}</p>
                       {activity.metadata && Object.keys(activity.metadata).length > 0 && (
                         <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {Object.entries(activity.metadata).map(([key, val]) => (
@@ -217,7 +228,7 @@ const Customer360 = () => {
                       )}
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             </div>
           </div>
@@ -227,8 +238,8 @@ const Customer360 = () => {
       <LogActivityModal 
         isOpen={isLogModalOpen} 
         onClose={() => setIsLogModalOpen(false)} 
-        contactId={contact.id}
-        dealId={activeDeals[0]?.id}
+        entityId={contact.id}
+        entityType="contact"
       />
     </div>
   );

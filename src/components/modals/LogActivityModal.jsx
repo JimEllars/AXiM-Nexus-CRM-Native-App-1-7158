@@ -3,7 +3,7 @@ import SafeIcon from '../../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useCrm } from '../../context/CrmContext';
 
-const LogActivityModal = ({ isOpen, onClose, contactId, dealId }) => {
+const LogActivityModal = ({ isOpen, onClose, entityId, entityType }) => {
   const { addActivity } = useCrm();
   const [formData, setFormData] = useState({
     type: 'CALL',
@@ -16,9 +16,11 @@ const LogActivityModal = ({ isOpen, onClose, contactId, dealId }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     addActivity({
-      ...formData,
-      contact_id: contactId,
-      deal_id: dealId,
+      activity_type: formData.type,
+      notes: { description: formData.description },
+      metadata: formData.metadata,
+      entity_id: entityId,
+      entity_type: entityType,
       logged_by_agent_id: 'current-user'
     });
     onClose();

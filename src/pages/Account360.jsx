@@ -3,11 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
+import LogActivityModal from '../components/modals/LogActivityModal';
+import { useState } from 'react';
 
 const Account360 = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { accounts, contacts, deals, activities } = useCrm();
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
   const { loading, error } = useCrm();
 
@@ -88,7 +91,7 @@ const Account360 = () => {
         </div>
         <div className="flex space-x-3">
           <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all">Edit Firmographics</button>
-          <button className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all shadow-lg">New Interaction</button>
+          <button onClick={() => setIsLogModalOpen(true)} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all shadow-lg">New Interaction</button>
         </div>
       </div>
 
@@ -173,12 +176,18 @@ const Account360 = () => {
               </div>
               <div>
                 <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Tech Stack</div>
-                <div className="flex flex-wrap gap-1 mt-1">
+                                <div className="flex flex-wrap gap-1 mt-1">
                   {['Salesforce', 'Azure', 'SAP'].map(tech => (
                     <span key={tech} className="px-2 py-0.5 bg-white/10 rounded text-[9px] font-bold">{tech}</span>
                   ))}
                 </div>
               </div>
+              {account.annual_revenue && (
+                <div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Annual Revenue</div>
+                  <div className="text-sm font-bold">${parseFloat(account.annual_revenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -199,6 +208,12 @@ const Account360 = () => {
           </div>
         </div>
       </div>
+      <LogActivityModal
+        isOpen={isLogModalOpen}
+        onClose={() => setIsLogModalOpen(false)}
+        entityId={id}
+        entityType="account"
+      />
     </div>
   );
 };

@@ -18,13 +18,14 @@ const Directory = () => {
   const [localContacts, setLocalContacts] = useState([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [sortConfig, setSortConfig] = useState({ field: 'created_at', ascending: false });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        const data = await contactService.getAll(0, debouncedSearchTerm);
+        const data = await contactService.getAll(0, debouncedSearchTerm, sortConfig);
         setLocalContacts(data);
         setOffset(0);
         setHasMore(data.length === 50);
@@ -33,12 +34,12 @@ const Directory = () => {
       }
     };
     fetchContacts();
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, sortConfig]);
 
   const loadMore = async () => {
     try {
       const nextOffset = offset + 50;
-      const data = await contactService.getAll(nextOffset, debouncedSearchTerm);
+      const data = await contactService.getAll(nextOffset, debouncedSearchTerm, sortConfig);
       setLocalContacts(prev => [...prev, ...data]);
       setOffset(nextOffset);
       setHasMore(data.length === 50);
@@ -65,6 +66,20 @@ const Directory = () => {
               className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
             />
           </div>
+
+          <select
+            value={sortConfig.field + '-' + sortConfig.ascending}
+            onChange={(e) => {
+              const [field, ascendingStr] = e.target.value.split('-');
+              setSortConfig({ field, ascending: ascendingStr === 'true' });
+            }}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 font-bold shrink-0"
+          >
+            <option value="created_at-false">Sort by: Newest</option>
+            <option value="created_at-true">Sort by: Oldest</option>
+            <option value="first_name-true">Sort by: Name (A-Z)</option>
+            <option value="first_name-false">Sort by: Name (Z-A)</option>
+          </select>
           <button 
             onClick={() => setIsBulkModalOpen(true)}
             className="bg-white border border-slate-200 text-slate-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0"
