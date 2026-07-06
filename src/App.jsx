@@ -15,17 +15,34 @@ import Campaigns from './pages/Campaigns';
 import OperationalSwarm from './pages/OperationalSwarm';
 import './App.css';
 import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './components/Login';
+
+
+const MainLayout = ({ children }) => (
+  <ProtectedRoute>
+    <div className="flex h-screen bg-slate-100 overflow-hidden font-sans text-slate-900">
+      <Sidebar />
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <TopNav />
+        <main className="flex-1 overflow-y-auto custom-scrollbar">
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+        </main>
+      </div>
+    </div>
+  </ProtectedRoute>
+);
 
 function App() {
   return (
     <CrmProvider>
       <Router>
-        <div className="flex h-screen bg-slate-100 overflow-hidden font-sans text-slate-900">
-          <Sidebar />
-          <div className="flex-1 flex flex-col h-screen overflow-hidden">
-            <TopNav />
-            <main className="flex-1 overflow-y-auto custom-scrollbar">
-              <ErrorBoundary>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/*" element={
+            <MainLayout>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/pipeline" element={<Pipeline />} />
@@ -38,10 +55,9 @@ function App() {
                 <Route path="/swarm" element={<OperationalSwarm />} />
                 <Route path="/settings" element={<Workflows />} />
               </Routes>
-            </ErrorBoundary>
-            </main>
-          </div>
-        </div>
+            </MainLayout>
+          } />
+        </Routes>
       </Router>
     </CrmProvider>
   );

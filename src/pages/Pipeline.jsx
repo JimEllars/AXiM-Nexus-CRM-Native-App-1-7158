@@ -93,7 +93,7 @@ const DealCard = ({ deal, onClick }) => {
 };
 
 const Pipeline = () => {
-  const { deals, moveDealStage, campaigns, loading, error } = useCrm();
+  const { deals, moveDealStage, campaigns, loading, error, realtimeStatus } = useCrm();
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id || 'all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inspectedDeal, setInspectedDeal] = useState(null);
@@ -178,6 +178,13 @@ const Pipeline = () => {
       <div className="px-8 py-6 border-b border-slate-200 bg-white grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Deal Progress</h1>
+
+          {realtimeStatus === 'error' && (
+            <div className="flex items-center space-x-2 bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg border border-rose-100 text-[10px] font-bold uppercase tracking-wider mt-3 w-max">
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div>
+              <span>Offline Mode - Reconnecting...</span>
+            </div>
+          )}
           <div className="flex items-center space-x-4 mt-3">
             <div className="relative">
               <SafeIcon icon={FiIcons.FiFilter} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />

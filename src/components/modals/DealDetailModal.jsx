@@ -84,6 +84,17 @@ const DealDetailModal = ({ deal, isOpen, onClose }) => {
                 </div>
               </div>
             </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => console.log('Onyx payload triggered')}
+                className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-4 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-200 flex justify-center items-center space-x-2"
+              >
+                <SafeIcon icon={FiIcons.FiZap} />
+                <span>Request Onyx Risk Summary</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-6">
