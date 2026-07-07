@@ -101,7 +101,7 @@ const Accounts = () => {
                   <div className="w-12 h-12 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
                     <SafeIcon icon={FiIcons.FiBriefcase} className="text-xl" />
                   </div>
-                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{acc.industry}</div>
+                  <div className="flex flex-col items-end gap-2"><span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">B2B ENTITY</span><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{acc.industry}</div></div>
                 </div>
                 
                 <h3 className="text-lg font-black text-slate-900 mb-1">{acc.company_name}</h3>

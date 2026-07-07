@@ -124,7 +124,7 @@ const Directory = () => {
                     </div>
                   </td>
                   <td className="p-4">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase ${contact.type === 'B2B_LEAD' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-purple-50 text-purple-700 border border-purple-100'}`}>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase ${contact.type === 'B2B_LEAD' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
                       {contact.type.replace('_', ' ')}
                     </span>
                   </td>
