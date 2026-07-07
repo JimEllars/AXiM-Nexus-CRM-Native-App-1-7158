@@ -2,10 +2,41 @@ import React, { useState, useEffect } from 'react';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useCrm } from '../context/CrmContext';
+import { supabase } from '../lib/supabase';
 
 const Analytics = () => {
   const { loading } = useCrm();
   const [localLoading, setLocalLoading] = useState(true);
+  const [pipelineVelocity, setPipelineVelocity] = useState(null);
+  const [winRate, setWinRate] = useState(null);
+
+  // Fetch RPC data for analytics
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const { data: velocityData, error: velocityError } = await supabase.rpc('calculate_pipeline_velocity');
+        if (velocityError) throw velocityError;
+        console.log('[Analytics] Mock pipeline velocity response:', velocityData);
+        setPipelineVelocity(velocityData);
+      } catch (err) {
+        console.error('[Analytics] Failed to fetch pipeline velocity:', err);
+      }
+
+      try {
+        const { data: winRateData, error: winRateError } = await supabase.rpc('get_win_rate_percentage');
+        if (winRateError) throw winRateError;
+        console.log('[Analytics] Mock win rate response:', winRateData);
+        setWinRate(winRateData);
+      } catch (err) {
+        console.error('[Analytics] Failed to fetch win rate:', err);
+      }
+    };
+
+    if (!loading) {
+      fetchAnalytics();
+    }
+  }, [loading]);
+
 
   // Simulate local loading of chart data to harden the shell
   useEffect(() => {
