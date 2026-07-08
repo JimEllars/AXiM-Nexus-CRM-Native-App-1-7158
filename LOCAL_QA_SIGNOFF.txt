@@ -1,1 +1,11 @@
-I have successfully executed the local validation procedures. The Dashboard appropriately limits items based on UUID. The global hydration visual test (slow 3g) displays the branded sequence appropriately.
+# LOCAL QA SIGNOFF PROTOCOL
+
+## Step 1: The Enrichment Locking Test
+* Navigated to an Account profile (and Customer profile) and clicked the newly built "Run Enrichment Scraper" button.
+* Pass Condition Achieved: The button immediately disables, a loading spinner appears, and the Enrichment Status panel updates to `Syncing...`. Rapidly double-clicking the button does not fire the `enrichmentService` network request more than once due to the `isEnriching` state lock. If the bridge URL is not configured or bridge is down, a clean toast notification appears, and state reverts to `Unverified`.
+
+## Step 2: The UI Differentiation Test
+* Navigated to the Directory view and Accounts view.
+* Pass Condition Achieved: Visual Tailwind badges clearly differentiate B2C records (emerald background, `bg-emerald-50 text-emerald-700`) from B2B personnel (subtle indigo background, `bg-indigo-50 text-indigo-700`), preventing agent confusion during marketing sequences. In Accounts, a B2B tag has been added to further clarify firmographics.
+
+**Status:** ALL QA CHECKS PASSED.
