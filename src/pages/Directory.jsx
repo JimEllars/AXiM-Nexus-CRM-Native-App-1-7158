@@ -14,6 +14,7 @@ const Directory = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const [localContacts, setLocalContacts] = useState([]);
   const [offset, setOffset] = useState(0);
@@ -80,6 +81,15 @@ const Directory = () => {
             <option value="first_name-true">Sort by: Name (A-Z)</option>
             <option value="first_name-false">Sort by: Name (Z-A)</option>
           </select>
+          {selectedIds.length > 0 && (
+            <button
+              onClick={() => console.log('Bulk Enrichment Payload:', selectedIds)}
+              className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all flex items-center space-x-2 shrink-0"
+            >
+              <SafeIcon icon={FiIcons.FiDatabase} />
+              <span className="hidden sm:inline">Enrich Selected ({selectedIds.length})</span>
+            </button>
+          )}
           <button 
             onClick={() => setIsBulkModalOpen(true)}
             className="bg-white border border-slate-200 text-slate-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0"
@@ -101,6 +111,23 @@ const Directory = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-black tracking-widest text-slate-400">
+              <th className="p-4 w-12">
+                <input
+                  type="checkbox"
+                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      const allIds = localContacts.map(c => c.id);
+                      // Merge with existing but remove duplicates using Set
+                      setSelectedIds(Array.from(new Set([...selectedIds, ...allIds])));
+                    } else {
+                      const visibleIds = localContacts.map(c => c.id);
+                      setSelectedIds(selectedIds.filter(id => !visibleIds.includes(id)));
+                    }
+                  }}
+                  checked={localContacts.length > 0 && localContacts.every(c => selectedIds.includes(c.id))}
+                />
+              </th>
               <th className="p-4">Name / Entity</th>
               <th className="p-4">Type</th>
               <th className="p-4">Contact Info</th>
@@ -112,6 +139,20 @@ const Directory = () => {
               const account = accounts.find(a => a.id === contact.account_id);
               return (
                 <tr key={contact.id} className="hover:bg-slate-50 transition-colors group">
+                  <td className="p-4">
+                    <input
+                      type="checkbox"
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      checked={selectedIds.includes(contact.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds([...selectedIds, contact.id]);
+                        } else {
+                          setSelectedIds(selectedIds.filter(id => id !== contact.id));
+                        }
+                      }}
+                    />
+                  </td>
                   <td className="p-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm border border-slate-200">

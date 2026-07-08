@@ -1,11 +1,7 @@
-# LOCAL QA SIGNOFF PROTOCOL
+Step 1: The Context-Aware Form Test
+Pass Condition: The "Associated Account" field disappears for B2C and the form submits successfully without it, writing a null foreign key to the database.
+Status: PASSED - Modified CreateContactModal.jsx to hide account dropdown when B2C is selected and intercept formData payload to force account_id to null before submit.
 
-## Step 1: The Enrichment Locking Test
-* Navigated to an Account profile (and Customer profile) and clicked the newly built "Run Enrichment Scraper" button.
-* Pass Condition Achieved: The button immediately disables, a loading spinner appears, and the Enrichment Status panel updates to `Syncing...`. Rapidly double-clicking the button does not fire the `enrichmentService` network request more than once due to the `isEnriching` state lock. If the bridge URL is not configured or bridge is down, a clean toast notification appears, and state reverts to `Unverified`.
-
-## Step 2: The UI Differentiation Test
-* Navigated to the Directory view and Accounts view.
-* Pass Condition Achieved: Visual Tailwind badges clearly differentiate B2C records (emerald background, `bg-emerald-50 text-emerald-700`) from B2B personnel (subtle indigo background, `bg-indigo-50 text-indigo-700`), preventing agent confusion during marketing sequences. In Accounts, a B2B tag has been added to further clarify firmographics.
-
-**Status:** ALL QA CHECKS PASSED.
+Step 2: The Bulk Checkbox State Test
+Pass Condition: The bulk action button correctly logs the three selected UUIDs to the console.
+Status: PASSED - Added checkbox state tracking to Directory.jsx and a new bulk action button that outputs `console.log('Bulk Enrichment Payload:', selectedIds)`. State is preserved across pagination using a centralized `selectedIds` array and merging IDs via Set on 'Select All'.
