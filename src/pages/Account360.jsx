@@ -5,13 +5,29 @@ import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import LogActivityModal from '../components/modals/LogActivityModal';
 import EnrichmentStatusPanel from '../components/EnrichmentStatusPanel';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { activityService } from '../services/activityService';
 
 const Account360 = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { accounts, contacts, deals, activities } = useCrm();
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [accountActivities, setAccountActivities] = useState([]);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const liveData = await activityService.getForEntity(id, 0, 50);
+        setAccountActivities(liveData);
+      } catch (err) {
+        console.error('Failed to fetch activity log', err);
+      }
+    };
+    if (id) {
+      fetchActivities();
+    }
+  }, [id]);
 
 const { loading, error } = useCrm();
 
@@ -209,6 +225,65 @@ const { loading, error } = useCrm();
             <button className="w-full py-2 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black text-slate-600 uppercase hover:bg-slate-100 transition-all">
               Download Matrix Report
             </button>
+          </div>
+        </div>
+        <div className="lg:col-span-3">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col min-h-[500px]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h3 className="font-black text-slate-900 tracking-tight">360° Interaction Matrix</h3>
+            </div>
+            <div className="p-8 flex-1 overflow-y-auto custom-scrollbar">
+              <div className="space-y-8 relative before:absolute before:inset-0 before:ml-4 before:h-full before:w-0.5 before:bg-slate-100">
+                {accountActivities.map((activity) => {
+                  const type = activity.activity_type || activity.type || 'SYSTEM_EVENT';
+
+                  let notes = {};
+                  try {
+                    notes = typeof activity.notes === 'string' ? JSON.parse(activity.notes) : (activity.notes || {});
+                  } catch (e) {
+                    notes = { description: activity.notes };
+                  }
+                  const description = notes.description || activity.description || '';
+
+                  let typeColor = 'text-slate-500';
+                  if (type.toLowerCase().includes('email')) typeColor = 'text-blue-600';
+                  else if (type.toLowerCase().includes('stage_change')) typeColor = 'text-green-600';
+                  else if (type.toLowerCase().includes('onyx')) typeColor = 'text-purple-600';
+                  else if (type === 'ONYX_INTERVENTION') typeColor = 'text-indigo-600';
+                  else if (type === 'support_ticket' || type === 'hardware_alert') typeColor = 'text-amber-600';
+
+                  return (
+                  <div key={activity.id} className="relative flex items-start space-x-6 group">
+                    <div className="z-10 shrink-0 w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
+                      {type === 'support_ticket' || type === 'hardware_alert' ? <SafeIcon icon={FiIcons.FiAlertTriangle} className="text-amber-600" /> : <SafeIcon icon={FiIcons.FiActivity} />}
+                    </div>
+                    <div className="flex-1 pb-8 border-b border-slate-50 last:border-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center space-x-3">
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${typeColor}`}>
+                            {type.replace('_', ' ')}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {new Date(activity.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium">{description}</p>
+                      {activity.metadata && Object.keys(activity.metadata).length > 0 && (
+                        <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {Object.entries(activity.metadata).map(([key, val]) => (
+                            <div key={key}>
+                              <div className="text-[9px] font-black text-slate-400 uppercase">{key.replace('_', ' ')}</div>
+                              <div className="text-xs font-mono text-slate-600 truncate">{val}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )})}
+              </div>
+            </div>
           </div>
         </div>
       </div>
