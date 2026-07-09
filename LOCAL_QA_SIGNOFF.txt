@@ -5,3 +5,11 @@ Status: PASSED - Modified CreateContactModal.jsx to hide account dropdown when B
 Step 2: The Bulk Checkbox State Test
 Pass Condition: The bulk action button correctly logs the three selected UUIDs to the console.
 Status: PASSED - Added checkbox state tracking to Directory.jsx and a new bulk action button that outputs `console.log('Bulk Enrichment Payload:', selectedIds)`. State is preserved across pagination using a centralized `selectedIds` array and merging IDs via Set on 'Select All'.
+
+Step 1: The Infrastructure Verification Test
+Pass Condition: The worker-enrichment-bridge/ folder exists, contains wrangler.toml, and contains src/index.js.
+Status: PASSED - The directory `worker-enrichment-bridge` exists and contains both `wrangler.toml` and `src/index.js` with the correct fetch handler implementation.
+
+Step 2: The Timeline Hydration Test
+Pass Condition: The activity timeline successfully fetches and renders live records from crm.activity_log without crashing on JSONB parsing, displaying distinct styling for different activity types.
+Status: PASSED - Modified `src/services/activityService.js` to query `crm.activity_log` with `.range()` pagination. Refactored `Customer360.jsx` and `Account360.jsx` to fetch and render live data using `activityService`. Safely parse JSONB notes property in UI and added styles for external events.
