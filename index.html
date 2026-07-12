@@ -7,46 +7,6 @@
     <meta name="description" content="AXiM Nexus CRM - Native Interface" />
     <title>AXiM Nexus CRM</title>
 
-    <!-- Lightweight Edge Telemetry -->
-    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_CF_TOKEN"}'></script>
-    <script>
-      (function() {
-        const telemetryEndpoint = '/cdn-cgi/telemetry'; // Placeholder for CF Worker endpoint
-        const start = performance.now();
-
-        window.addEventListener('load', () => {
-          const loadTime = performance.now() - start;
-          // Silently report page load time
-          if (navigator.sendBeacon) {
-            navigator.sendBeacon(telemetryEndpoint, JSON.stringify({ type: 'page_load', duration: loadTime }));
-          }
-        });
-
-        window.addEventListener('error', (event) => {
-          // Silently report errors
-          console.error('[CF-Edge-Telemetry] Uncaught Exception:', event.message, event.filename, event.lineno, event.colno);
-          if (navigator.sendBeacon) {
-            navigator.sendBeacon(telemetryEndpoint, JSON.stringify({
-              type: 'error',
-              message: `[CF-Edge-Telemetry] ${event.message}`,
-              source: event.filename,
-              lineno: event.lineno,
-              colno: event.colno
-            }));
-          }
-        });
-
-        window.addEventListener('unhandledrejection', (event) => {
-          console.error('[CF-Edge-Telemetry] Unhandled Rejection:', event.reason);
-          if (navigator.sendBeacon) {
-            navigator.sendBeacon(telemetryEndpoint, JSON.stringify({
-              type: 'unhandled_rejection',
-              reason: `[CF-Edge-Telemetry] ${event.reason?.message || event.reason}`
-            }));
-          }
-        });
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>
