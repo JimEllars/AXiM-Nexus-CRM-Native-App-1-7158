@@ -13,3 +13,11 @@ Status: PASSED - The directory `worker-enrichment-bridge` exists and contains bo
 Step 2: The Timeline Hydration Test
 Pass Condition: The activity timeline successfully fetches and renders live records from crm.activity_log without crashing on JSONB parsing, displaying distinct styling for different activity types.
 Status: PASSED - Modified `src/services/activityService.js` to query `crm.activity_log` with `.range()` pagination. Refactored `Customer360.jsx` and `Account360.jsx` to fetch and render live data using `activityService`. Safely parse JSONB notes property in UI and added styles for external events.
+
+Step 1: The Dual-Pipeline Test
+Pass Condition: The Kanban columns instantly swap to the correct stages, and the deals filter cleanly without throwing React mapping errors.
+Status: PASSED - Added PIPELINE_CONFIGS mapping and a toggle switch in Pipeline.jsx. B2B maps to PROSPECT/TECHNICAL_REVIEW/CONTRACT_NEGOTIATION/CLOSED_WON/CLOSED_LOST, while B2C maps to NEW_LEAD/CONTACTED/APPOINTMENT_SET/CLOSED_WON/CLOSED_LOST. Local deals correctly filter into their respective StageColumns without crashing.
+
+Step 2: The Scraper Cooldown Test
+Pass Condition: The client-side rate limiter successfully intercepts the subsequent calls, preventing network requests and displaying the proper warning Toast.
+Status: PASSED - Implemented sliding window rate limiting in enrichmentService.js. Tracks request timestamps in a 10s rolling window. Subsequent calls block further requests, output a 'Rate Limit Exceeded: Scraper bridge cooling down' toast, and log to DLQ.

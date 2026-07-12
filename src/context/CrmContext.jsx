@@ -99,6 +99,12 @@ export const CrmProvider = ({ children }) => {
     loadAllData();
 
     // Supabase Realtime Prep: Subscription for crm.deals table
+    const broadcastChannel = supabase.channel('enrichment-events')
+      .on('broadcast', { event: 'enrichment_completed' }, (payload) => {
+        toast.success("Ecosystem Scraper completed a record sync");
+      })
+      .subscribe();
+
     const channel = supabase.channel('schema-db-changes')
       .on(
         'postgres_changes',
@@ -136,6 +142,7 @@ export const CrmProvider = ({ children }) => {
 
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(broadcastChannel);
     };
   }, [session]);
 
