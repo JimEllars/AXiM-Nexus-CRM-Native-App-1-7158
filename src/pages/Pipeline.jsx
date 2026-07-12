@@ -11,7 +11,16 @@ import { dealService } from '../services/dealService';
 import { activityService } from '../services/activityService';
 
 
-const STAGES = ['PROSPECT', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST'];
+const PIPELINE_CONFIGS = {
+  b2b: {
+    label: 'Commercial B2B',
+    stages: ['PROSPECT', 'TECHNICAL_REVIEW', 'CONTRACT_NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST']
+  },
+  b2c: {
+    label: 'Consumer B2C',
+    stages: ['NEW_LEAD', 'CONTACTED', 'APPOINTMENT_SET', 'CLOSED_WON', 'CLOSED_LOST']
+  }
+};
 
 const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick, movingDealIds }) => {
   const totalValue = deals.reduce((sum, d) => sum + d.amount, 0);
@@ -103,6 +112,7 @@ const DealCard = ({ deal, onClick, isMoving }) => {
 const Pipeline = () => {
   const { deals, moveDealStage, campaigns, loading, error, realtimeStatus, session } = useCrm();
   const [localDeals, setLocalDeals] = useState(deals);
+  const [pipelineType, setPipelineType] = useState('b2b');
   const [movingDealIds, setMovingDealIds] = useState(new Set());
 
   useEffect(() => {
@@ -228,7 +238,23 @@ const Pipeline = () => {
     <div className="flex flex-col h-full bg-slate-50">
       <div className="px-8 py-6 border-b border-slate-200 bg-white grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Deal Progress</h1>
+          <div className="flex items-center space-x-4">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Deal Progress</h1>
+            <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+              <button
+                onClick={() => setPipelineType('b2b')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${pipelineType === 'b2b' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                {PIPELINE_CONFIGS.b2b.label}
+              </button>
+              <button
+                onClick={() => setPipelineType('b2c')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${pipelineType === 'b2c' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                {PIPELINE_CONFIGS.b2c.label}
+              </button>
+            </div>
+          </div>
 
           {realtimeStatus === 'error' && (
             <div className="flex items-center space-x-2 bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg border border-rose-100 text-[10px] font-bold uppercase tracking-wider mt-3 w-max">
@@ -280,7 +306,7 @@ const Pipeline = () => {
 
       <div className="flex-1 overflow-x-auto p-8">
         <div className="flex space-x-6 h-full pb-4 items-start w-max">
-          {STAGES.map(stage => (
+          {PIPELINE_CONFIGS[pipelineType].stages.map(stage => (
             <StageColumn 
               key={stage} 
               stage={stage} 

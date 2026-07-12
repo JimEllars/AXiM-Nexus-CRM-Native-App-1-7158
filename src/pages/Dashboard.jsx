@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCrm } from '../context/CrmContext';
+import { enrichmentService } from '../services/enrichmentService';
 import { useNavigate } from 'react-router-dom';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
@@ -7,6 +8,16 @@ import * as FiIcons from 'react-icons/fi';
 const Dashboard = () => {
   const { deals, contacts, activities, runOnyxSweep, isSweeping, tasks, loading, session } = useCrm();
   const navigate = useNavigate();
+  const [enrichmentQueue, setEnrichmentQueue] = useState(enrichmentService.getQueue());
+
+  useEffect(() => {
+    const handleQueueUpdate = () => {
+      setEnrichmentQueue(enrichmentService.getQueue());
+    };
+    window.addEventListener('enrichment_queue_updated', handleQueueUpdate);
+    return () => window.removeEventListener('enrichment_queue_updated', handleQueueUpdate);
+  }, []);
+
 
 
 
@@ -177,6 +188,44 @@ const Dashboard = () => {
               )}
               </>
             )}</div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+            <h3 className="font-black text-slate-900 mb-6 uppercase tracking-widest text-xs flex items-center justify-between">
+              <span>Data Enrichment Queue</span>
+              <SafeIcon icon={FiIcons.FiDatabase} className="text-indigo-600" />
+            </h3>
+            <div className="space-y-4">
+              {enrichmentQueue.length === 0 ? (
+                <div className="p-4 text-center text-slate-400 text-xs italic">No enrichment tasks in queue.</div>
+              ) : (
+                enrichmentQueue.map((task, i) => {
+                  let badgeClasses = 'bg-slate-100 text-slate-500';
+                  if (task.status === 'Enriched') badgeClasses = 'bg-emerald-100 text-emerald-700';
+                  if (task.status === 'Failed') badgeClasses = 'bg-red-100 text-red-700';
+                  if (task.status === 'Scraping...') badgeClasses = 'bg-amber-100 text-amber-700';
+                  if (task.status === 'Queued') badgeClasses = 'bg-slate-100 text-slate-600';
+
+                  return (
+                    <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
+                      <div>
+                        <div className="text-xs font-black text-slate-800 line-clamp-1">{task.entityType} - {task.entityId.substring(0, 8)}...</div>
+                        <div className="text-[9px] font-black text-slate-400 mt-1">{new Date(task.timestamp).toLocaleTimeString()}</div>
+                      </div>
+                      <div className={`text-[10px] uppercase font-black px-2 py-1 rounded flex items-center space-x-1 ${badgeClasses}`}>
+                        {task.status === 'Scraping...' && (
+                           <svg className="animate-spin h-3 w-3 text-amber-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                           </svg>
+                        )}
+                        <span>{task.status}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
 
           <div className="bg-indigo-900 rounded-2xl p-6 text-white overflow-hidden relative">
