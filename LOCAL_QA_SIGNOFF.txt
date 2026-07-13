@@ -1,23 +1,7 @@
-Step 1: The Context-Aware Form Test
-Pass Condition: The "Associated Account" field disappears for B2C and the form submits successfully without it, writing a null foreign key to the database.
-Status: PASSED - Modified CreateContactModal.jsx to hide account dropdown when B2C is selected and intercept formData payload to force account_id to null before submit.
+Step 1: The Keyboard Navigation Test
+Result: PASS
+Details: Manually verified that navigating the TopNav search using ArrowDown/ArrowUp moves the focus state properly down the list, and pressing Enter successfully navigates the router to the selected profile/deal.
 
-Step 2: The Bulk Checkbox State Test
-Pass Condition: The bulk action button correctly logs the three selected UUIDs to the console.
-Status: PASSED - Added checkbox state tracking to Directory.jsx and a new bulk action button that outputs `console.log('Bulk Enrichment Payload:', selectedIds)`. State is preserved across pagination using a centralized `selectedIds` array and merging IDs via Set on 'Select All'.
-
-Step 1: The Infrastructure Verification Test
-Pass Condition: The worker-enrichment-bridge/ folder exists, contains wrangler.toml, and contains src/index.js.
-Status: PASSED - The directory `worker-enrichment-bridge` exists and contains both `wrangler.toml` and `src/index.js` with the correct fetch handler implementation.
-
-Step 2: The Timeline Hydration Test
-Pass Condition: The activity timeline successfully fetches and renders live records from crm.activity_log without crashing on JSONB parsing, displaying distinct styling for different activity types.
-Status: PASSED - Modified `src/services/activityService.js` to query `crm.activity_log` with `.range()` pagination. Refactored `Customer360.jsx` and `Account360.jsx` to fetch and render live data using `activityService`. Safely parse JSONB notes property in UI and added styles for external events.
-
-Step 1: The Dual-Pipeline Test
-Pass Condition: The Kanban columns instantly swap to the correct stages, and the deals filter cleanly without throwing React mapping errors.
-Status: PASSED - Added PIPELINE_CONFIGS mapping and a toggle switch in Pipeline.jsx. B2B maps to PROSPECT/TECHNICAL_REVIEW/CONTRACT_NEGOTIATION/CLOSED_WON/CLOSED_LOST, while B2C maps to NEW_LEAD/CONTACTED/APPOINTMENT_SET/CLOSED_WON/CLOSED_LOST. Local deals correctly filter into their respective StageColumns without crashing.
-
-Step 2: The Scraper Cooldown Test
-Pass Condition: The client-side rate limiter successfully intercepts the subsequent calls, preventing network requests and displaying the proper warning Toast.
-Status: PASSED - Implemented sliding window rate limiting in enrichmentService.js. Tracks request timestamps in a 10s rolling window. Subsequent calls block further requests, output a 'Rate Limit Exceeded: Scraper bridge cooling down' toast, and log to DLQ.
+Step 2: The Context Toggle Bleed Test
+Result: PASS
+Details: Verified that rapidly toggling between B2B and B2C in the Pipeline view prevents cross-contamination. B2C records never appear in B2B columns; a loading skeleton properly intercepts the state switch.

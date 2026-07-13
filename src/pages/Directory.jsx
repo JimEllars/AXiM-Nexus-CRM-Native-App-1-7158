@@ -21,6 +21,22 @@ const Directory = () => {
   const [hasMore, setHasMore] = useState(true);
   const [sortConfig, setSortConfig] = useState({ field: 'created_at', ascending: false });
 
+  // Quick Add State
+  const [quickAdd, setQuickAdd] = useState({ firstName: '', lastName: '', phone: '' });
+
+  const handleQuickAdd = (e) => {
+    e.preventDefault();
+    if (!quickAdd.firstName || !quickAdd.lastName) return;
+    const payload = {
+      first_name: quickAdd.firstName,
+      last_name: quickAdd.lastName,
+      phone: quickAdd.phone,
+      type: 'B2C_LEAD'
+    };
+    console.log('[B2C-Quick-Add]', payload);
+    setQuickAdd({ firstName: '', lastName: '', phone: '' });
+  };
+
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
@@ -105,6 +121,45 @@ const Directory = () => {
             <span className="hidden sm:inline">Add Contact</span>
           </button>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 p-4">
+        <form onSubmit={handleQuickAdd} className="flex flex-col md:flex-row items-center gap-4">
+          <div className="flex-1 w-full relative">
+            <input
+              type="text"
+              placeholder="First Name"
+              value={quickAdd.firstName}
+              onChange={(e) => setQuickAdd({...quickAdd, firstName: e.target.value})}
+              className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+          </div>
+          <div className="flex-1 w-full relative">
+            <input
+              type="text"
+              placeholder="Last Name"
+              value={quickAdd.lastName}
+              onChange={(e) => setQuickAdd({...quickAdd, lastName: e.target.value})}
+              className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+          </div>
+          <div className="flex-1 w-full relative">
+            <input
+              type="text"
+              placeholder="Phone Number"
+              value={quickAdd.phone}
+              onChange={(e) => setQuickAdd({...quickAdd, phone: e.target.value})}
+              className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full md:w-auto bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center justify-center space-x-2 shadow-lg shadow-indigo-100 shrink-0"
+          >
+            <SafeIcon icon={FiIcons.FiZap} />
+            <span>Add & Enrich</span>
+          </button>
+        </form>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">

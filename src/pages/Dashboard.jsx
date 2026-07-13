@@ -1,22 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useCrm } from '../context/CrmContext';
-import { enrichmentService } from '../services/enrichmentService';
 import { useNavigate } from 'react-router-dom';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
 const Dashboard = () => {
-  const { deals, contacts, activities, runOnyxSweep, isSweeping, tasks, loading, session } = useCrm();
+  const { deals, contacts, activities, runOnyxSweep, isSweeping, tasks, loading, session, enrichmentQueue } = useCrm();
   const navigate = useNavigate();
-  const [enrichmentQueue, setEnrichmentQueue] = useState(enrichmentService.getQueue());
-
-  useEffect(() => {
-    const handleQueueUpdate = () => {
-      setEnrichmentQueue(enrichmentService.getQueue());
-    };
-    window.addEventListener('enrichment_queue_updated', handleQueueUpdate);
-    return () => window.removeEventListener('enrichment_queue_updated', handleQueueUpdate);
-  }, []);
 
 
 
