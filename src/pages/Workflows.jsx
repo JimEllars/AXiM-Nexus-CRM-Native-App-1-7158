@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 
 const Workflows = () => {
-  const { workflows, toggleWorkflow, addWorkflow } = useCrm();
+  const { workflows, toggleWorkflow, deleteWorkflow, addWorkflow } = useCrm();
   const [isDeploying, setIsDeploying] = useState(false);
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [newAgent, setNewAgent] = useState({ name: '', target_entity_type: 'DEAL', trigger_conditions: '{"stage": "CLOSED_WON"}', action_payload: '{"template": "webhook_notify"}' });
@@ -71,7 +71,10 @@ const Workflows = () => {
                   >
                     {wf.is_active ? 'Swarm Running' : 'Swarm Paused'}
                   </button>
-                  <button className="p-2 text-slate-400 hover:text-rose-600 transition-colors">
+                  <button
+                    onClick={() => deleteWorkflow(wf.id)}
+                    className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
+                  >
                     <SafeIcon icon={FiIcons.FiTrash2} />
                   </button>
                 </div>

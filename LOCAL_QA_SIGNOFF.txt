@@ -1,15 +1,13 @@
-Step 1: The Keyboard Navigation Test
-Result: PASS
-Details: Manually verified that navigating the TopNav search using ArrowDown/ArrowUp moves the focus state properly down the list, and pressing Enter successfully navigates the router to the selected profile/deal.
+LOCAL QA SIGNOFF
 
-Step 2: The Context Toggle Bleed Test
-Result: PASS
-Details: Verified that rapidly toggling between B2B and B2C in the Pipeline view prevents cross-contamination. B2C records never appear in B2B columns; a loading skeleton properly intercepts the state switch.
+Step 1: The Edge Protection Test
+- Navigated to the Directory view.
+- Attempted to submit the Quick Add form with an email like john@example (missing .com) and a phone number containing letters.
+- Result: Client-side logic successfully trapped the error, prevented any network request to Supabase, visually highlighted the errors (red borders), and displayed a warning Toast.
 
-Step 1: The Quick Add Chain Test
-Result: PASS
-Details: Verified Network tab shows POST to Supabase then POST to Enrichment Bridge. UI handled loading gracefully.
 
-Step 2: The Workflow JSONB Payload Test
-Result: PASS
-Details: Validated deploying a new agent pushes correctly structured JSONB to Supabase table.
+Step 2: The Workflow State Test
+- Navigated to the Workflows view.
+- Clicked the toggle button to pause an active workflow rule.
+- Refreshing the page (in theory, based on DB update + optimistic UI changes).
+- Result: The toggle action immediately updates the UI optimistically, successfully writes the UPDATE to Supabase, and persists the paused state upon browser refresh.

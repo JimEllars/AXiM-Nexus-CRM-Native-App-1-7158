@@ -240,12 +240,37 @@ export const CrmProvider = ({ children }) => {
 
 
   const toggleWorkflow = async (workflowId) => {
+    const wf = workflows.find(w => w.id === workflowId);
+    if (!wf) return;
+
+    // Optimistic update
+    setWorkflows(prev => prev.map(w => w.id === workflowId ? { ...w, is_active: !w.is_active } : w));
+
     try {
-      const wf = workflows.find(w => w.id === workflowId);
-      if(!wf) return;
-      const updatedWf = await workflowService.toggle(workflowId, !wf.is_active);
-      setWorkflows(prev => prev.map(w => w.id === workflowId ? updatedWf : w));
-    } catch (e) { console.error(e); }
+      await workflowService.toggle(workflowId, !wf.is_active);
+    } catch (e) {
+      console.error(e);
+      // Revert on failure
+      setWorkflows(prev => prev.map(w => w.id === workflowId ? { ...w, is_active: wf.is_active } : w));
+      toast.error('Failed to toggle workflow state.');
+    }
+  };
+
+  const deleteWorkflow = async (workflowId) => {
+    const wf = workflows.find(w => w.id === workflowId);
+    if (!wf) return;
+
+    // Optimistic update
+    setWorkflows(prev => prev.filter(w => w.id !== workflowId));
+
+    try {
+      await workflowService.delete(workflowId);
+    } catch (e) {
+      console.error(e);
+      // Revert on failure
+      setWorkflows(prev => [...prev, wf]);
+      toast.error('Failed to delete workflow.');
+    }
   };
 
   const addWorkflow = async (workflowData) => {
@@ -308,7 +333,7 @@ export const CrmProvider = ({ children }) => {
   return (
     <CrmContext.Provider value={{
       session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
-      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue
+      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue
     }}>
       {children}
     </CrmContext.Provider>
