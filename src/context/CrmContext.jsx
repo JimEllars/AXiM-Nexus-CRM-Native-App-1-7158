@@ -6,6 +6,7 @@ import { dealService } from '../services/dealService';
 import { activityService } from '../services/activityService';
 import { campaignService } from '../services/campaignService';
 import { taskService } from '../services/taskService';
+import { enrichmentService } from '../services/enrichmentService';
 import { supabase } from '../lib/supabase';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
@@ -29,6 +30,15 @@ export const CrmProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [realtimeStatus, setRealtimeStatus] = useState('connected');
+  const [enrichmentQueue, setEnrichmentQueue] = useState(enrichmentService.getQueue());
+
+  useEffect(() => {
+    const handleQueueUpdate = () => {
+      setEnrichmentQueue(enrichmentService.getQueue());
+    };
+    window.addEventListener('enrichment_queue_updated', handleQueueUpdate);
+    return () => window.removeEventListener('enrichment_queue_updated', handleQueueUpdate);
+  }, []);
 
 
   useEffect(() => {
@@ -102,6 +112,12 @@ export const CrmProvider = ({ children }) => {
     const broadcastChannel = supabase.channel('enrichment-events')
       .on('broadcast', { event: 'enrichment_completed' }, (payload) => {
         toast.success("Ecosystem Scraper completed a record sync");
+        const logData = payload.payload?.data || payload;
+        enrichmentService.addToQueue({
+          entityId: logData.entityId || 'SYS-SYNC',
+          entityType: logData.entityType || 'Webhook',
+          status: 'Enriched'
+        });
       })
       .subscribe();
 
@@ -269,7 +285,7 @@ export const CrmProvider = ({ children }) => {
   return (
     <CrmContext.Provider value={{
       session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
-      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading
+      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue
     }}>
       {children}
     </CrmContext.Provider>

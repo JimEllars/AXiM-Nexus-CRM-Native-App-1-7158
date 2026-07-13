@@ -114,10 +114,25 @@ const Pipeline = () => {
   const [localDeals, setLocalDeals] = useState(deals);
   const [pipelineType, setPipelineType] = useState('b2b');
   const [movingDealIds, setMovingDealIds] = useState(new Set());
+  const [isSwitchingType, setIsSwitchingType] = useState(false);
 
   useEffect(() => {
-    setLocalDeals(deals);
-  }, [deals]);
+    if (!isSwitchingType) {
+      setLocalDeals(deals);
+    }
+  }, [deals, isSwitchingType]);
+
+  const handleTypeChange = (newType) => {
+    if (pipelineType === newType) return;
+    setIsSwitchingType(true);
+    setLocalDeals([]);
+    setPipelineType(newType);
+    setTimeout(() => {
+      setLocalDeals(deals);
+      setIsSwitchingType(false);
+    }, 400); // Brief skeleton loader duration
+  };
+
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id || 'all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inspectedDeal, setInspectedDeal] = useState(null);
@@ -242,13 +257,13 @@ const Pipeline = () => {
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Deal Progress</h1>
             <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
               <button
-                onClick={() => setPipelineType('b2b')}
+                onClick={() => handleTypeChange('b2b')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${pipelineType === 'b2b' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 {PIPELINE_CONFIGS.b2b.label}
               </button>
               <button
-                onClick={() => setPipelineType('b2c')}
+                onClick={() => handleTypeChange('b2c')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${pipelineType === 'b2c' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 {PIPELINE_CONFIGS.b2c.label}
@@ -305,19 +320,35 @@ const Pipeline = () => {
       </div>
 
       <div className="flex-1 overflow-x-auto p-8">
-        <div className="flex space-x-6 h-full pb-4 items-start w-max">
-          {PIPELINE_CONFIGS[pipelineType].stages.map(stage => (
-            <StageColumn 
-              key={stage} 
-              stage={stage} 
-              deals={filteredDeals.filter(d => d.stage === stage)}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDealClick={setInspectedDeal}
-              movingDealIds={movingDealIds}
-            />
-          ))}
-        </div>
+        {isSwitchingType ? (
+          <div className="flex space-x-6 h-full pb-4 items-start w-max animate-pulse">
+            {PIPELINE_CONFIGS[pipelineType].stages.map(stage => (
+              <div key={stage} className="flex flex-col min-w-[320px] max-w-[320px] bg-slate-50 rounded-xl border border-slate-200 h-[500px] overflow-hidden">
+                <div className="p-4 border-b border-slate-200 bg-slate-100/50">
+                   <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                </div>
+                <div className="p-3 space-y-3">
+                   <div className="h-24 bg-white rounded-lg border border-slate-200"></div>
+                   <div className="h-24 bg-white rounded-lg border border-slate-200"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex space-x-6 h-full pb-4 items-start w-max">
+            {PIPELINE_CONFIGS[pipelineType].stages.map(stage => (
+              <StageColumn
+                key={stage}
+                stage={stage}
+                deals={filteredDeals.filter(d => d.stage === stage)}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDealClick={setInspectedDeal}
+                movingDealIds={movingDealIds}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <CreateDealModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
