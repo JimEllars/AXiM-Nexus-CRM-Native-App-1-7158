@@ -4,6 +4,42 @@ import { useNavigate } from 'react-router-dom';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
+
+const DashboardMetrics = React.memo(({ loading, totalValue, pendingTasksCount, contactsCount }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {loading ? (
+        [1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4 animate-pulse">
+            <div className="w-12 h-12 rounded-xl bg-slate-200"></div>
+            <div className="flex-1 space-y-2">
+              <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+              <div className="h-6 bg-slate-200 rounded w-3/4"></div>
+            </div>
+          </div>
+        ))
+      ) : (
+      [
+        { label: 'Pipeline Velocity', val: `${(totalValue/1000).toFixed(1)}k`, icon: FiIcons.FiTrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { label: 'Pending Actions', val: pendingTasksCount, icon: FiIcons.FiCheckCircle, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Onyx Leads', val: contactsCount, icon: FiIcons.FiZap, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { label: 'System Health', val: '99.8%', icon: FiIcons.FiActivity, color: 'text-blue-600', bg: 'bg-blue-50' }
+      ].map((stat, i) => (
+        <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+          <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+            <SafeIcon icon={stat.icon} className="text-xl" />
+          </div>
+          <div>
+            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</div>
+            <div className="text-xl font-black text-slate-900">{stat.val}</div>
+          </div>
+        </div>
+      ))
+      )}
+    </div>
+  );
+});
+
 const Dashboard = () => {
   const { deals, contacts, activities, runOnyxSweep, isSweeping, tasks, loading, session, enrichmentQueue } = useCrm();
   const navigate = useNavigate();
@@ -38,35 +74,12 @@ const Dashboard = () => {
       </div>
 
       {/* Grid Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {loading ? (
-          [1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4 animate-pulse">
-              <div className="w-12 h-12 rounded-xl bg-slate-200"></div>
-              <div className="flex-1 space-y-2">
-                <div className="h-3 bg-slate-200 rounded w-1/2"></div>
-                <div className="h-6 bg-slate-200 rounded w-3/4"></div>
-              </div>
-            </div>
-          ))
-        ) : (
-        [
-          { label: 'Pipeline Velocity', val: `$${(totalValue/1000).toFixed(1)}k`, icon: FiIcons.FiTrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Pending Actions', val: pendingTasks.length, icon: FiIcons.FiCheckCircle, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Onyx Leads', val: contacts.length, icon: FiIcons.FiZap, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'System Health', val: '99.8%', icon: FiIcons.FiActivity, color: 'text-blue-600', bg: 'bg-blue-50' }
-        ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-            <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
-              <SafeIcon icon={stat.icon} className="text-xl" />
-            </div>
-            <div>
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</div>
-              <div className="text-xl font-black text-slate-900">{stat.val}</div>
-            </div>
-          </div>
-        ))
-        )}      </div>
+      <DashboardMetrics
+        loading={loading}
+        totalValue={totalValue}
+        pendingTasksCount={pendingTasks.length}
+        contactsCount={contacts.length}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">

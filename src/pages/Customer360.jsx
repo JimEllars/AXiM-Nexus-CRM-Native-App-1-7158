@@ -22,6 +22,7 @@ const Customer360 = () => {
   const navigate = useNavigate();
   const { contacts, accounts, activities, deals } = useCrm();
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [filterType, setFilterType] = useState('All');
 
 const { loading, error } = useCrm();
 
@@ -189,7 +190,32 @@ const { loading, error } = useCrm();
             
             <div className="p-8 flex-1 overflow-y-auto custom-scrollbar">
               <div className="space-y-8 relative before:absolute before:inset-0 before:ml-4 before:h-full before:w-0.5 before:bg-slate-100">
-                {contactActivities.map((activity) => {
+                {/* Filter Pills */}
+                <div className="flex space-x-2 mb-6">
+                  {['All', 'Communications', 'System'].map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => setFilterType(filter)}
+                      className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors ${
+                        filterType === filter
+                          ? 'bg-slate-900 text-white shadow-md'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
+                {contactActivities.filter((activity) => {
+                  const type = (activity.activity_type || activity.type || 'SYSTEM_EVENT').toLowerCase();
+                  if (filterType === 'Communications') {
+                    return type.includes('call') || type.includes('email') || type.includes('message');
+                  }
+                  if (filterType === 'System') {
+                    return type.includes('onyx') || type.includes('system') || type.includes('stage_change') || type.includes('alert') || type.includes('ticket') || type.includes('webhook') || type.includes('automation');
+                  }
+                  return true;
+                }).map((activity) => {
                   const type = activity.activity_type || activity.type || 'SYSTEM_EVENT';
                   const notes = typeof activity.notes === 'string' ? JSON.parse(activity.notes) : (activity.notes || {});
                   const description = notes.description || activity.description || '';

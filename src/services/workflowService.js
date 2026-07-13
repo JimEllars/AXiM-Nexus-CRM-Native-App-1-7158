@@ -37,5 +37,14 @@ export const workflowService = {
       .single();
     if (error) throw error;
     return data;
+  },
+
+  async delete(id) {
+    const { error } = await supabase
+      .from('workflows')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return true;
   }
 };

@@ -24,25 +24,52 @@ const Directory = () => {
   const [sortConfig, setSortConfig] = useState({ field: 'created_at', ascending: false });
 
   // Quick Add State
-  const [quickAdd, setQuickAdd] = useState({ firstName: '', lastName: '', phone: '' });
+  const [quickAdd, setQuickAdd] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+  const [quickAddErrors, setQuickAddErrors] = useState({ email: false, phone: false });
   const [isQuickAdding, setIsQuickAdding] = useState(false);
 
   const handleQuickAdd = async (e) => {
     e.preventDefault();
     if (!quickAdd.firstName || !quickAdd.lastName) return;
+
+    let hasError = false;
+    const errors = { email: false, phone: false };
+
+    // Standard Email Regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (quickAdd.email && !emailRegex.test(quickAdd.email)) {
+      errors.email = true;
+      hasError = true;
+    }
+
+    // E.164-ish Phone Regex
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    if (quickAdd.phone && !phoneRegex.test(quickAdd.phone.replace(/[\s\-()]/g, ''))) {
+      errors.phone = true;
+      hasError = true;
+    }
+
+    if (hasError) {
+      setQuickAddErrors(errors);
+      toast.warning('Please correct the highlighted fields before submitting.');
+      return;
+    }
+
+    setQuickAddErrors({ email: false, phone: false });
     setIsQuickAdding(true);
     try {
       const payload = {
         first_name: quickAdd.firstName,
         last_name: quickAdd.lastName,
-        phone: quickAdd.phone,
+        email: quickAdd.email,
+        phone: quickAdd.phone.replace(/[\s\-()]/g, ''),
         type: 'B2C_LEAD'
       };
       const newContact = await contactService.create(payload);
       toast.success('Entity added successfully.');
       await enrichmentService.triggerDataEnrichment(newContact.id, 'CONTACT');
       toast.success('Enrichment sent to Cloudflare Worker bridge.');
-      setQuickAdd({ firstName: '', lastName: '', phone: '' });
+      setQuickAdd({ firstName: '', lastName: '', email: '', phone: '' });
     } catch (err) {
       toast.error('Failed to quick add entity.');
     } finally {
@@ -158,11 +185,20 @@ const Directory = () => {
           </div>
           <div className="flex-1 w-full relative">
             <input
+              type="email"
+              placeholder="Email Address"
+              value={quickAdd.email}
+              onChange={(e) => { setQuickAdd({...quickAdd, email: e.target.value}); setQuickAddErrors({...quickAddErrors, email: false}); }}
+              className={`w-full px-4 py-2 bg-slate-50 border rounded-xl text-sm focus:ring-2 outline-none ${quickAddErrors.email ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-200 focus:ring-indigo-500'}`}
+            />
+          </div>
+          <div className="flex-1 w-full relative">
+            <input
               type="text"
               placeholder="Phone Number"
               value={quickAdd.phone}
-              onChange={(e) => setQuickAdd({...quickAdd, phone: e.target.value})}
-              className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              onChange={(e) => { setQuickAdd({...quickAdd, phone: e.target.value}); setQuickAddErrors({...quickAddErrors, phone: false}); }}
+              className={`w-full px-4 py-2 bg-slate-50 border rounded-xl text-sm focus:ring-2 outline-none ${quickAddErrors.phone ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-200 focus:ring-indigo-500'}`}
             />
           </div>
           <button
