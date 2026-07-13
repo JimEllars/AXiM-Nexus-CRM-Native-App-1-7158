@@ -66,6 +66,11 @@ const TopNav = ({ toggleSidebar }) => {
         }
       } else if (e.key === 'Escape') {
         setIsSearchOpen(false);
+        setFocusedIndex(-1);
+        if (searchRef.current) {
+          const input = searchRef.current.querySelector('input');
+          if (input) input.blur();
+        }
       }
     };
 
@@ -100,11 +105,17 @@ const TopNav = ({ toggleSidebar }) => {
             type="text" 
             placeholder="Search accounts, contacts, or deals (Onyx Indexed)..." 
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={() => { if (searchResults.length > 0) setIsSearchOpen(true); }}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if (e.target.value === '') {
+                setIsSearchOpen(false);
+                setSearchResults([]);
+              }
+            }}
+            onFocus={() => { if (searchResults.length > 0 && searchTerm !== '') setIsSearchOpen(true); }}
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-700 placeholder:text-slate-400"
           />
-          {isSearchOpen && (
+          {isSearchOpen && searchTerm !== '' && (
             <div className="absolute top-full mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden z-50">
               <ul className="max-h-80 overflow-y-auto">
                 {searchResults.map((item, index) => (

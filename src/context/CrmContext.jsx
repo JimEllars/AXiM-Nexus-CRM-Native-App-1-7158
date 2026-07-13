@@ -7,6 +7,7 @@ import { activityService } from '../services/activityService';
 import { campaignService } from '../services/campaignService';
 import { taskService } from '../services/taskService';
 import { enrichmentService } from '../services/enrichmentService';
+import { workflowService } from '../services/workflowService';
 import { supabase } from '../lib/supabase';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
@@ -82,13 +83,14 @@ export const CrmProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const [accs, cons, dls, acts, camps, tsks] = await Promise.all([
+      const [accs, cons, dls, acts, camps, tsks, wfs] = await Promise.all([
         accountService.getAll(),
         contactService.getAll(),
         dealService.getAll(),
         activityService.getAll(),
         campaignService.getAll(),
-        taskService.getAll()
+        taskService.getAll(),
+        workflowService.getAll()
       ]);
       setAccounts(accs || []);
       setContacts(cons || []);
@@ -96,6 +98,7 @@ export const CrmProvider = ({ children }) => {
       setActivities(acts || []);
       setCampaigns(camps || []);
       setTasks(tsks || []);
+      setWorkflows(wfs || []);
     } catch (err) {
       console.error('Failed to load CRM data:', err);
       setError(err);
@@ -235,6 +238,26 @@ export const CrmProvider = ({ children }) => {
     } catch (e) { console.error(e); }
   };
 
+
+  const toggleWorkflow = async (workflowId) => {
+    try {
+      const wf = workflows.find(w => w.id === workflowId);
+      if(!wf) return;
+      const updatedWf = await workflowService.toggle(workflowId, !wf.is_active);
+      setWorkflows(prev => prev.map(w => w.id === workflowId ? updatedWf : w));
+    } catch (e) { console.error(e); }
+  };
+
+  const addWorkflow = async (workflowData) => {
+    try {
+      const newWf = await workflowService.create(workflowData);
+      setWorkflows(prev => [...prev, newWf]);
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
   const moveDealStage = async (dealId, newStage) => {
     await updateDeal(dealId, { stage: newStage });
   };
@@ -285,7 +308,7 @@ export const CrmProvider = ({ children }) => {
   return (
     <CrmContext.Provider value={{
       session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
-      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue
+      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue
     }}>
       {children}
     </CrmContext.Provider>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useCrm } from '../context/CrmContext';
-import { supabase } from '../lib/supabase';
+import { supabase, logToAsguardDLQ } from '../lib/supabase';
 
 const Analytics = () => {
   const { loading } = useCrm();
@@ -17,18 +17,22 @@ const Analytics = () => {
         const { data: velocityData, error: velocityError } = await supabase.rpc('calculate_pipeline_velocity');
         if (velocityError) throw velocityError;
         console.log('[Analytics] Mock pipeline velocity response:', velocityData);
-        setPipelineVelocity(velocityData);
+        setPipelineVelocity(velocityData == null || isNaN(velocityData) ? 0 : velocityData);
       } catch (err) {
         console.error('[Analytics] Failed to fetch pipeline velocity:', err);
+        setPipelineVelocity(0);
+        logToAsguardDLQ({ type: 'ANALYTICS_ERROR', message: 'Failed to fetch pipeline velocity', error: err });
       }
 
       try {
         const { data: winRateData, error: winRateError } = await supabase.rpc('get_win_rate_percentage');
         if (winRateError) throw winRateError;
         console.log('[Analytics] Mock win rate response:', winRateData);
-        setWinRate(winRateData);
+        setWinRate(winRateData == null || isNaN(winRateData) ? 0 : winRateData);
       } catch (err) {
         console.error('[Analytics] Failed to fetch win rate:', err);
+        setWinRate(0);
+        logToAsguardDLQ({ type: 'ANALYTICS_ERROR', message: 'Failed to fetch win rate', error: err });
       }
     };
 
@@ -76,7 +80,7 @@ const Analytics = () => {
               {i === 1 && (
                 <>
                   <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Pipeline Value</div>
-                  <div className="text-3xl font-black text-slate-900">$2,450,000</div>
+                  <div className="text-3xl font-black text-slate-900">${(pipelineVelocity ?? 0).toLocaleString()}</div>
                   <div className="mt-4 flex items-center text-emerald-600 text-xs font-bold">
                     <SafeIcon icon={FiIcons.FiTrendingUp} className="mr-1" />
                     <span>+12.4% from last sweep</span>
@@ -86,7 +90,7 @@ const Analytics = () => {
               {i === 2 && (
                 <>
                   <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Win Rate</div>
-                  <div className="text-3xl font-black text-slate-900">34.2%</div>
+                  <div className="text-3xl font-black text-slate-900">{(winRate ?? 0).toFixed(1)}%</div>
                   <div className="mt-4 flex items-center text-emerald-600 text-xs font-bold">
                     <SafeIcon icon={FiIcons.FiTrendingUp} className="mr-1" />
                     <span>+2.1% this quarter</span>

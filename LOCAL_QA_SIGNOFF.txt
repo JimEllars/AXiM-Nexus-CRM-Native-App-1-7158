@@ -5,3 +5,11 @@ Details: Manually verified that navigating the TopNav search using ArrowDown/Arr
 Step 2: The Context Toggle Bleed Test
 Result: PASS
 Details: Verified that rapidly toggling between B2B and B2C in the Pipeline view prevents cross-contamination. B2C records never appear in B2B columns; a loading skeleton properly intercepts the state switch.
+
+Step 1: The Quick Add Chain Test
+Result: PASS
+Details: Verified Network tab shows POST to Supabase then POST to Enrichment Bridge. UI handled loading gracefully.
+
+Step 2: The Workflow JSONB Payload Test
+Result: PASS
+Details: Validated deploying a new agent pushes correctly structured JSONB to Supabase table.
