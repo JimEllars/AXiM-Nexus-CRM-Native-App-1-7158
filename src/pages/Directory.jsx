@@ -7,6 +7,8 @@ import CreateContactModal from '../components/modals/CreateContactModal';
 import BulkAddContactsModal from '../components/modals/BulkAddContactsModal';
 import { useDebounce } from '../hooks/useDebounce';
 import { contactService } from '../services/contactService';
+import { enrichmentService } from '../services/enrichmentService';
+import { toast } from 'react-toastify';
 
 const Directory = () => {
   const { accounts } = useCrm();
@@ -23,18 +25,29 @@ const Directory = () => {
 
   // Quick Add State
   const [quickAdd, setQuickAdd] = useState({ firstName: '', lastName: '', phone: '' });
+  const [isQuickAdding, setIsQuickAdding] = useState(false);
 
-  const handleQuickAdd = (e) => {
+  const handleQuickAdd = async (e) => {
     e.preventDefault();
     if (!quickAdd.firstName || !quickAdd.lastName) return;
-    const payload = {
-      first_name: quickAdd.firstName,
-      last_name: quickAdd.lastName,
-      phone: quickAdd.phone,
-      type: 'B2C_LEAD'
-    };
-    console.log('[B2C-Quick-Add]', payload);
-    setQuickAdd({ firstName: '', lastName: '', phone: '' });
+    setIsQuickAdding(true);
+    try {
+      const payload = {
+        first_name: quickAdd.firstName,
+        last_name: quickAdd.lastName,
+        phone: quickAdd.phone,
+        type: 'B2C_LEAD'
+      };
+      const newContact = await contactService.create(payload);
+      toast.success('Entity added successfully.');
+      await enrichmentService.triggerDataEnrichment(newContact.id, 'CONTACT');
+      toast.success('Enrichment sent to Cloudflare Worker bridge.');
+      setQuickAdd({ firstName: '', lastName: '', phone: '' });
+    } catch (err) {
+      toast.error('Failed to quick add entity.');
+    } finally {
+      setIsQuickAdding(false);
+    }
   };
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -154,10 +167,11 @@ const Directory = () => {
           </div>
           <button
             type="submit"
-            className="w-full md:w-auto bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center justify-center space-x-2 shadow-lg shadow-indigo-100 shrink-0"
+            disabled={isQuickAdding}
+            className="w-full md:w-auto bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center justify-center space-x-2 shadow-lg shadow-indigo-100 shrink-0 disabled:opacity-75 disabled:cursor-not-allowed"
           >
-            <SafeIcon icon={FiIcons.FiZap} />
-            <span>Add & Enrich</span>
+            {isQuickAdding ? <SafeIcon icon={FiIcons.FiLoader} className="animate-spin" /> : <SafeIcon icon={FiIcons.FiZap} />}
+            <span>{isQuickAdding ? 'Adding...' : 'Add & Enrich'}</span>
           </button>
         </form>
       </div>
