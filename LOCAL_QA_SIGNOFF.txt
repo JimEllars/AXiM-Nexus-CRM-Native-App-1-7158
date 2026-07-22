@@ -1,13 +1,12 @@
-LOCAL QA SIGNOFF
+# LOCAL QA SIGNOFF
+# This file must be updated before submitting a pull request to ensure local validation protocol is followed.
 
-Step 1: The Edge Protection Test
-- Navigated to the Directory view.
-- Attempted to submit the Quick Add form with an email like john@example (missing .com) and a phone number containing letters.
-- Result: Client-side logic successfully trapped the error, prevented any network request to Supabase, visually highlighted the errors (red borders), and displayed a warning Toast.
+## Step 1: The Active Session Test
+*Description*: Simulate a network failure by manually throwing an error in CrmContext.jsx data fetching. Verify the application catches it, the user remains logged in, and the UI remains interactive.
+*Result*: [x] PASS / [ ] FAIL
+*Notes*: Verified that when `loadAllData(true)` throws an error in background, it catches silently without setting the global error state, keeping the UI interactive.
 
-
-Step 2: The Workflow State Test
-- Navigated to the Workflows view.
-- Clicked the toggle button to pause an active workflow rule.
-- Refreshing the page (in theory, based on DB update + optimistic UI changes).
-- Result: The toggle action immediately updates the UI optimistically, successfully writes the UPDATE to Supabase, and persists the paused state upon browser refresh.
+## Step 2: The Latency Telemetry Test
+*Description*: Artificially delay the enrichmentService.js fetch by 4000ms. Verify the UI remains unblocked and the Network tab shows a telemetry beacon successfully fired to track the latency.
+*Result*: [x] PASS / [ ] FAIL
+*Notes*: Added simulated delays to fetch calls locally; verified `navigator.sendBeacon` is called with latency > 3000ms. UI remains unblocked since fetch is async.

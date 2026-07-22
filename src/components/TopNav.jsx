@@ -12,6 +12,7 @@ const TopNav = ({ toggleSidebar }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [searchError, setSearchError] = useState(false);
   const searchRef = useRef(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -20,30 +21,44 @@ const TopNav = ({ toggleSidebar }) => {
     if (!debouncedSearchTerm) {
       setSearchResults([]);
       setIsSearchOpen(false);
+      setSearchError(false);
       return;
     }
 
-    const lowerTerm = debouncedSearchTerm.toLowerCase();
+    try {
+      setSearchError(false);
+      const lowerTerm = debouncedSearchTerm.toLowerCase();
 
-    const matchedContacts = contacts
-      .filter(c => (c.first_name + ' ' + c.last_name).toLowerCase().includes(lowerTerm) || c.email?.toLowerCase().includes(lowerTerm))
-      .slice(0, 3)
-      .map(c => ({ id: c.id, title: `${c.first_name} ${c.last_name}`, type: 'Contact', link: `/contact/${c.id}` }));
+      const matchedContacts = contacts
+        .filter(c => (c.first_name + ' ' + c.last_name).toLowerCase().includes(lowerTerm) || c.email?.toLowerCase().includes(lowerTerm))
+        .slice(0, 3)
+        .map(c => ({ id: c.id, title: `${c.first_name} ${c.last_name}`, type: 'Contact', link: `/contact/${c.id}` }));
 
-    const matchedAccounts = accounts
-      .filter(a => a.company_name?.toLowerCase().includes(lowerTerm))
-      .slice(0, 3)
-      .map(a => ({ id: a.id, title: a.company_name, type: 'Account', link: `/account/${a.id}` }));
+      const matchedAccounts = accounts
+        .filter(a => a.company_name?.toLowerCase().includes(lowerTerm))
+        .slice(0, 3)
+        .map(a => ({ id: a.id, title: a.company_name, type: 'Account', link: `/account/${a.id}` }));
 
-    const matchedDeals = deals
-      .filter(d => d.title?.toLowerCase().includes(lowerTerm))
-      .slice(0, 3)
-      .map(d => ({ id: d.id, title: d.title, type: 'Deal', link: `/pipeline` }));
+      const matchedDeals = deals
+        .filter(d => d.title?.toLowerCase().includes(lowerTerm))
+        .slice(0, 3)
+        .map(d => ({ id: d.id, title: d.title, type: 'Deal', link: `/pipeline` }));
 
-    const combined = [...matchedContacts, ...matchedAccounts, ...matchedDeals];
-    setSearchResults(combined);
-    setIsSearchOpen(combined.length > 0);
-    setFocusedIndex(-1);
+      const combined = [...matchedContacts, ...matchedAccounts, ...matchedDeals];
+      setSearchResults(combined);
+      setIsSearchOpen(combined.length > 0);
+      setFocusedIndex(-1);
+    } catch (error) {
+      console.error('Global search error:', error);
+      setSearchError(true);
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/cdn-cgi/telemetry', JSON.stringify({
+          type: 'GLOBAL_SEARCH_ERROR',
+          message: error.message,
+          timestamp: new Date().toISOString()
+        }));
+      }
+    }
   }, [debouncedSearchTerm, contacts, accounts, deals]);
 
   useEffect(() => {
@@ -115,7 +130,12 @@ const TopNav = ({ toggleSidebar }) => {
             onFocus={() => { if (searchResults.length > 0 && searchTerm !== '') setIsSearchOpen(true); }}
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-700 placeholder:text-slate-400"
           />
-          {isSearchOpen && searchTerm !== '' && (
+          {searchError && searchTerm !== '' && (
+            <div className="absolute top-full mt-2 w-full bg-white border border-rose-200 rounded-lg shadow-lg overflow-hidden z-50 p-4 text-center">
+              <span className="text-sm font-semibold text-rose-600">Search temporarily unavailable</span>
+            </div>
+          )}
+          {!searchError && isSearchOpen && searchTerm !== '' && (
             <div className="absolute top-full mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden z-50">
               <ul className="max-h-80 overflow-y-auto">
                 {searchResults.map((item, index) => (

@@ -79,9 +79,19 @@ export const CrmProvider = ({ children }) => {
 
 
 
-  const loadAllData = async () => {
-    setLoading(true);
-    setError(null);
+  const mergeArrays = (prev, next) => {
+    const nextMap = new Map(next.map(item => [item.id, item]));
+    const merged = prev.map(item => nextMap.has(item.id) ? nextMap.get(item.id) : item);
+    const prevIds = new Set(prev.map(item => item.id));
+    const newItems = next.filter(item => !prevIds.has(item.id));
+    return [...merged, ...newItems];
+  };
+
+  const loadAllData = async (isBackground = false) => {
+    if (!isBackground) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [accs, cons, dls, acts, camps, tsks, wfs] = await Promise.all([
         accountService.getAll(),
@@ -92,24 +102,43 @@ export const CrmProvider = ({ children }) => {
         taskService.getAll(),
         workflowService.getAll()
       ]);
-      setAccounts(accs || []);
-      setContacts(cons || []);
-      setDeals(dls || []);
-      setActivities(acts || []);
-      setCampaigns(camps || []);
-      setTasks(tsks || []);
-      setWorkflows(wfs || []);
+
+      if (isBackground) {
+        setAccounts(prev => mergeArrays(prev, accs || []));
+        setContacts(prev => mergeArrays(prev, cons || []));
+        setDeals(prev => mergeArrays(prev, dls || []));
+        setActivities(prev => mergeArrays(prev, acts || []));
+        setCampaigns(prev => mergeArrays(prev, camps || []));
+        setTasks(prev => mergeArrays(prev, tsks || []));
+        setWorkflows(prev => mergeArrays(prev, wfs || []));
+      } else {
+        setAccounts(accs || []);
+        setContacts(cons || []);
+        setDeals(dls || []);
+        setActivities(acts || []);
+        setCampaigns(camps || []);
+        setTasks(tsks || []);
+        setWorkflows(wfs || []);
+      }
     } catch (err) {
       console.error('Failed to load CRM data:', err);
-      setError(err);
+      if (!isBackground) {
+        setError(err);
+      }
     } finally {
-      setLoading(false);
+      if (!isBackground) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     if (!session) return;
     loadAllData();
+
+    const intervalId = setInterval(() => {
+      loadAllData(true);
+    }, 30000); // Poll every 30 seconds for background refresh
 
     // Supabase Realtime Prep: Subscription for crm.deals table
     const broadcastChannel = supabase.channel('enrichment-events')
@@ -160,6 +189,7 @@ export const CrmProvider = ({ children }) => {
       });
 
     return () => {
+      clearInterval(intervalId);
       supabase.removeChannel(channel);
       supabase.removeChannel(broadcastChannel);
     };
