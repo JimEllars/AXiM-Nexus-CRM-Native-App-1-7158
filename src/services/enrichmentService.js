@@ -17,11 +17,39 @@ export const enrichmentService = {
     window.dispatchEvent(new Event('enrichment_queue_updated'));
   },
 
-  async triggerDataEnrichment(entityId, entityType) {
+
+  async triggerBulkDataEnrichment(entities) {
+    const chunkSize = 10;
+    const results = [];
+
+    for (let i = 0; i < entities.length; i += chunkSize) {
+      const chunk = entities.slice(i, i + chunkSize);
+
+      const chunkPromises = chunk.map(entity =>
+        this.triggerDataEnrichment(entity.entityId, entity.entityType, true)
+      );
+
+      const chunkResults = await Promise.allSettled(chunkPromises);
+      results.push(...chunkResults);
+
+      const has429 = chunkResults.some(result =>
+        result.status === 'rejected' && result.reason && result.reason.message && result.reason.message.includes('429')
+      );
+
+      if (has429 && i + chunkSize < entities.length) {
+        console.warn('Rate limit hit (429), pausing for 2000ms...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+
+    return results;
+  },
+
+  async triggerDataEnrichment(entityId, entityType, skipLocalLimit = false) {
     const now = Date.now();
     requestTimestamps = requestTimestamps.filter(t => now - t < 10000);
 
-    if (requestTimestamps.length >= 5) {
+    if (!skipLocalLimit && requestTimestamps.length >= 5) {
       toast.warn('Rate Limit Exceeded: Scraper bridge cooling down');
 
       // Log to DLQ telemetry

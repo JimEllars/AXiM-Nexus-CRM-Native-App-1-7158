@@ -154,9 +154,39 @@ const Directory = () => {
             <option value="first_name-true">Sort by: Name (A-Z)</option>
             <option value="first_name-false">Sort by: Name (Z-A)</option>
           </select>
+
           {selectedIds.length > 0 && (
             <button
-              onClick={() => console.log('Bulk Enrichment Payload:', selectedIds)}
+              onClick={async () => {
+                const idsToDelete = [...selectedIds];
+                try {
+                  await contactService.bulkDelete(idsToDelete);
+                  toast.success(`Successfully deleted ${idsToDelete.length} records`);
+                  setLocalContacts(prev => prev.filter(c => !idsToDelete.includes(c.id)));
+                  setSelectedIds([]);
+                } catch (e) {
+                  toast.error('Failed to delete records');
+                }
+              }}
+              className="bg-rose-50 border border-rose-200 text-rose-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-rose-100 transition-all flex items-center space-x-2 shrink-0"
+            >
+              <SafeIcon icon={FiIcons.FiTrash2} />
+              <span className="hidden sm:inline">Delete Selected ({selectedIds.length})</span>
+            </button>
+          )}
+          {selectedIds.length > 0 && (
+
+            <button
+              onClick={async () => {
+                toast.info(`Starting bulk enrichment for ${selectedIds.length} entities...`);
+                const entities = selectedIds.map(id => ({ entityId: id, entityType: "CONTACT" }));
+                try {
+                  await enrichmentService.triggerBulkDataEnrichment(entities);
+                  toast.success("Bulk enrichment completed.");
+                } catch(e) {
+                  toast.error("Bulk enrichment encountered errors.");
+                }
+              }}
               className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all flex items-center space-x-2 shrink-0"
             >
               <SafeIcon icon={FiIcons.FiDatabase} />

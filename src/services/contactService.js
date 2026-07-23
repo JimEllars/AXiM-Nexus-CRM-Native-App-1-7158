@@ -30,5 +30,14 @@ export const contactService = {
       .select();
     if (error) throw error;
     return data || [];
+  },
+
+  async bulkDelete(ids) {
+    const { data, error } = await supabase
+      .from('contacts')
+      .delete()
+      .in('id', ids);
+    if (error) throw error;
+    return data;
   }
 };
