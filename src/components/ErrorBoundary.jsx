@@ -23,7 +23,7 @@ class ErrorBoundary extends React.Component {
         // Let's use a simpler approach. We will just check if we can get it from supabase client.
       } catch (e) { /* ignore */ }
 
-      console.error('[AXiM-Edge-Telemetry-Capture] ' + JSON.stringify({
+      const telemetryPayload = {
         level: 'error',
         message: error.message || 'Unknown error',
         stack: error.stack,
@@ -31,7 +31,13 @@ class ErrorBoundary extends React.Component {
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
         userUUID: window.AXIM_USER_UUID || 'unknown'
-      }, null, 2));
+      };
+
+      console.error('[AXiM-Edge-Telemetry-Capture] ' + JSON.stringify(telemetryPayload, null, 2));
+
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/cdn-cgi/telemetry', JSON.stringify(telemetryPayload));
+      }
     }, 0);
   }
 

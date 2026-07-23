@@ -50,6 +50,7 @@ export const enrichmentService = {
     }
 
     try {
+      const startTime = performance.now();
       const response = await fetch(bridgeUrl, {
         method: 'POST',
         headers: {
@@ -60,6 +61,20 @@ export const enrichmentService = {
           entityType
         }),
       });
+
+      const endTime = performance.now();
+      const latency = endTime - startTime;
+
+      if (latency > 3000) {
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/cdn-cgi/telemetry', JSON.stringify({
+            type: 'LATENCY_WARNING',
+            service: 'enrichmentService',
+            latency: latency,
+            timestamp: new Date().toISOString()
+          }));
+        }
+      }
 
       if (!response.ok) {
         this.addToQueue({ entityId, entityType, status: 'Failed' });

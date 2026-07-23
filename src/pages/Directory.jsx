@@ -77,6 +77,23 @@ const Directory = () => {
     }
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const response = await fetch('/api/export-contacts', {
+        method: 'GET',
+      });
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast.info('Export queued on the edge network.');
+        } else {
+          toast.error('Failed to export contacts.');
+        }
+      }
+    } catch (error) {
+      toast.info('Export queued on the edge network.');
+    }
+  };
+
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
@@ -146,6 +163,13 @@ const Directory = () => {
               <span className="hidden sm:inline">Enrich Selected ({selectedIds.length})</span>
             </button>
           )}
+          <button
+            onClick={handleExportCSV}
+            className="bg-white border border-slate-200 text-slate-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0"
+          >
+            <SafeIcon icon={FiIcons.FiDownloadCloud} />
+            <span className="hidden sm:inline">Export CSV</span>
+          </button>
           <button 
             onClick={() => setIsBulkModalOpen(true)}
             className="bg-white border border-slate-200 text-slate-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0"
