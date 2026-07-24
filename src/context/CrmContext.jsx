@@ -173,6 +173,22 @@ export const CrmProvider = ({ children }) => {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'activities'
+        },
+        (payload) => {
+          console.log('Realtime Activities insert received:', payload);
+          setActivities(prevActivities => {
+            const exists = prevActivities.some(act => act.id === payload.new.id);
+            if (exists) return prevActivities;
+            return [payload.new, ...prevActivities];
+          });
+        }
+      )
       .subscribe((status, err) => {
         if (err) {
           console.error('Realtime subscription error:', err);
