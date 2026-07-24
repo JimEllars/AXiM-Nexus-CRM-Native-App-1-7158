@@ -172,12 +172,17 @@ const Pipeline = () => {
 
       // Activity log for CLOSED_WON or CLOSED_LOST
       if (stage === 'CLOSED_WON' || stage === 'CLOSED_LOST') {
-         await activityService.create({
-            account_id: deal.account_id,
-            type: stage === 'CLOSED_WON' ? 'DEAL_WON' : 'DEAL_LOST',
-            description: `Deal moved to ${stage === 'CLOSED_WON' ? 'Closed Won' : 'Closed Lost'}`,
-            logged_by_agent_id: session?.user?.id || 'system'
-         });
+         if (stage === 'CLOSED_WON') {
+             await activityService.logSystemActivity(`Deal ${deal.title || 'Unknown'} marked as Closed Won`);
+             toast.success(`Deal ${deal.title || 'Unknown'} marked as Closed Won`);
+         } else {
+             await activityService.create({
+                account_id: deal.account_id,
+                type: 'DEAL_LOST',
+                description: 'Deal moved to Closed Lost',
+                logged_by_agent_id: session?.user?.id || 'system'
+             });
+         }
       }
 
     } catch (err) {

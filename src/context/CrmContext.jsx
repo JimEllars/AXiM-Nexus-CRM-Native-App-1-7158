@@ -8,7 +8,7 @@ import { campaignService } from '../services/campaignService';
 import { taskService } from '../services/taskService';
 import { enrichmentService } from '../services/enrichmentService';
 import { workflowService } from '../services/workflowService';
-import { supabase } from '../lib/supabase';
+import { supabase, logToAsguardDLQ } from '../lib/supabase';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
@@ -151,7 +151,16 @@ export const CrmProvider = ({ children }) => {
           status: 'Enriched'
         });
       })
-      .subscribe();
+      .on('system', { event: 'phx_reply' }, (payload) => {
+        if (payload?.response?.status === 'error' || payload?.status === 'error') {
+           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'enrichment-events channel error', payload });
+        }
+      })
+      .subscribe((status, err) => {
+        if (err || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'enrichment-events channel connection failed', error: err, status });
+        }
+      });
 
     const channel = supabase.channel('schema-db-changes')
       .on(
@@ -189,18 +198,23 @@ export const CrmProvider = ({ children }) => {
           });
         }
       )
+      .on('system', { event: 'phx_reply' }, (payload) => {
+        if (payload?.response?.status === 'error' || payload?.status === 'error') {
+           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'schema-db-changes channel error', payload });
+        }
+      })
       .subscribe((status, err) => {
         if (err) {
           console.error('Realtime subscription error:', err);
           setRealtimeStatus('error');
+          logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'schema-db-changes channel error', error: err });
         } else if (status === 'SUBSCRIBED') {
           setRealtimeStatus('connected');
         } else if (status === 'CLOSED') {
           setRealtimeStatus('disconnected');
-        } else if (status === 'CHANNEL_ERROR') {
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setRealtimeStatus('error');
-        } else if (status === 'TIMED_OUT') {
-          setRealtimeStatus('error');
+          logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'schema-db-changes channel connection failed', status });
         }
       });
 
