@@ -21,6 +21,20 @@ export const activityService = {
     return data || [];
   },
 
+
+  async logSystemActivity(message) {
+    const { data, error } = await supabase
+      .from('activities')
+      .insert([{
+        type: 'SYSTEM_EVENT',
+        description: message,
+        logged_by_agent_id: 'system'
+      }])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
   async create(activityData) {
     const { data, error } = await supabase
       .from('activities')

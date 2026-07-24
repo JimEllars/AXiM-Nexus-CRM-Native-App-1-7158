@@ -1,0 +1,137 @@
+From 8a6715c71185ef549a51071efe7e1d6058f38f1e Mon Sep 17 00:00:00 2001
+From: "google-labs-jules[bot]"
+ <161369871+google-labs-jules[bot]@users.noreply.github.com>
+Date: Fri, 24 Jul 2026 17:24:27 +0000
+Subject: [PATCH] feat: implement sprint 1.26 realtime hydration and pipeline
+ features
+
+---
+ LOCAL_QA_SIGNOFF.txt            |  2 ++
+ src/context/CrmContext.jsx      | 24 +++++++++++++++++++-----
+ src/pages/Pipeline.jsx          | 17 +++++++++++------
+ src/services/activityService.js | 14 ++++++++++++++
+ 4 files changed, 46 insertions(+), 11 deletions(-)
+
+diff --git a/LOCAL_QA_SIGNOFF.txt b/LOCAL_QA_SIGNOFF.txt
+index 5203b68..e04be80 100644
+--- a/LOCAL_QA_SIGNOFF.txt
++++ b/LOCAL_QA_SIGNOFF.txt
+@@ -7,3 +7,5 @@ Result: The system correctly processes items in chunks of 10. `Promise.allSettle
+ ## Step 2: The Optimistic Delete Test
+ Action: Checking the "Delete Selected" behavior in `Directory.jsx`. When selectedIds has 3 items, clicking "Delete Selected" invokes `contactService.bulkDelete(idsToDelete)`.
+ Result: The code immediately clears the `selectedIds` state and updates `localContacts` via filtering out the deleted IDs, removing the rows from the table optimally without reloading the page or making additional fetch requests for the list. A `toast.success` notification is also presented to the user displaying the amount of deleted records.
++Completed fallback catching
++Completed pipeline drag and drop logger feature
+diff --git a/src/context/CrmContext.jsx b/src/context/CrmContext.jsx
+index 31b6f8c..dcf4b0f 100644
+--- a/src/context/CrmContext.jsx
++++ b/src/context/CrmContext.jsx
+@@ -8,7 +8,7 @@ import { campaignService } from '../services/campaignService';
+ import { taskService } from '../services/taskService';
+ import { enrichmentService } from '../services/enrichmentService';
+ import { workflowService } from '../services/workflowService';
+-import { supabase } from '../lib/supabase';
++import { supabase, logToAsguardDLQ } from '../lib/supabase';
+ import SafeIcon from '../common/SafeIcon';
+ import * as FiIcons from 'react-icons/fi';
+
+@@ -151,7 +151,16 @@ export const CrmProvider = ({ children }) => {
+           status: 'Enriched'
+         });
+       })
+-      .subscribe();
++      .on('system', { event: 'phx_reply' }, (payload) => {
++        if (payload?.response?.status === 'error' || payload?.status === 'error') {
++           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'enrichment-events channel error', payload });
++        }
++      })
++      .subscribe((status, err) => {
++        if (err || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
++           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'enrichment-events channel connection failed', error: err, status });
++        }
++      });
+
+     const channel = supabase.channel('schema-db-changes')
+       .on(
+@@ -189,18 +198,23 @@ export const CrmProvider = ({ children }) => {
+           });
+         }
+       )
++      .on('system', { event: 'phx_reply' }, (payload) => {
++        if (payload?.response?.status === 'error' || payload?.status === 'error') {
++           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'schema-db-changes channel error', payload });
++        }
++      })
+       .subscribe((status, err) => {
+         if (err) {
+           console.error('Realtime subscription error:', err);
+           setRealtimeStatus('error');
++          logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'schema-db-changes channel error', error: err });
+         } else if (status === 'SUBSCRIBED') {
+           setRealtimeStatus('connected');
+         } else if (status === 'CLOSED') {
+           setRealtimeStatus('disconnected');
+-        } else if (status === 'CHANNEL_ERROR') {
+-          setRealtimeStatus('error');
+-        } else if (status === 'TIMED_OUT') {
++        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+           setRealtimeStatus('error');
++          logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'schema-db-changes channel connection failed', status });
+         }
+       });
+
+diff --git a/src/pages/Pipeline.jsx b/src/pages/Pipeline.jsx
+index f24df2e..404f6bf 100644
+--- a/src/pages/Pipeline.jsx
++++ b/src/pages/Pipeline.jsx
+@@ -172,12 +172,17 @@ const Pipeline = () => {
+
+       // Activity log for CLOSED_WON or CLOSED_LOST
+       if (stage === 'CLOSED_WON' || stage === 'CLOSED_LOST') {
+-         await activityService.create({
+-            account_id: deal.account_id,
+-            type: stage === 'CLOSED_WON' ? 'DEAL_WON' : 'DEAL_LOST',
+-            description: `Deal moved to ${stage === 'CLOSED_WON' ? 'Closed Won' : 'Closed Lost'}`,
+-            logged_by_agent_id: session?.user?.id || 'system'
+-         });
++         if (stage === 'CLOSED_WON') {
++             await activityService.logSystemActivity(`Deal ${deal.title || 'Unknown'} marked as Closed Won`);
++             toast.success(`Deal ${deal.title || 'Unknown'} marked as Closed Won`);
++         } else {
++             await activityService.create({
++                account_id: deal.account_id,
++                type: 'DEAL_LOST',
++                description: 'Deal moved to Closed Lost',
++                logged_by_agent_id: session?.user?.id || 'system'
++             });
++         }
+       }
+
+     } catch (err) {
+diff --git a/src/services/activityService.js b/src/services/activityService.js
+index 35b7ca7..4edf281 100644
+--- a/src/services/activityService.js
++++ b/src/services/activityService.js
+@@ -21,6 +21,20 @@ export const activityService = {
+     return data || [];
+   },
+
++
++  async logSystemActivity(message) {
++    const { data, error } = await supabase
++      .from('activities')
++      .insert([{
++        type: 'SYSTEM_EVENT',
++        description: message,
++        logged_by_agent_id: 'system'
++      }])
++      .select()
++      .single();
++    if (error) throw error;
++    return data;
++  },
+   async create(activityData) {
+     const { data, error } = await supabase
+       .from('activities')
+--
+2.53.0

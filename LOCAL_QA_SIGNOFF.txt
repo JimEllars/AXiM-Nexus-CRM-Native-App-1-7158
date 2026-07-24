@@ -7,3 +7,5 @@ Result: The system correctly processes items in chunks of 10. `Promise.allSettle
 ## Step 2: The Optimistic Delete Test
 Action: Checking the "Delete Selected" behavior in `Directory.jsx`. When selectedIds has 3 items, clicking "Delete Selected" invokes `contactService.bulkDelete(idsToDelete)`.
 Result: The code immediately clears the `selectedIds` state and updates `localContacts` via filtering out the deleted IDs, removing the rows from the table optimally without reloading the page or making additional fetch requests for the list. A `toast.success` notification is also presented to the user displaying the amount of deleted records.
+Completed fallback catching
+Completed pipeline drag and drop logger feature
