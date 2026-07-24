@@ -4,6 +4,7 @@ import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useDebounce } from '../hooks/useDebounce';
 import { accountService } from '../services/accountService';
+import { supabase, logToAsguardDLQ } from '../lib/supabase';
 
 const Accounts = () => {
   const { deals, contacts } = useCrm();
@@ -28,6 +29,42 @@ const Accounts = () => {
     };
     fetchAccounts();
   }, [debouncedSearchTerm, sortConfig]);
+
+
+  useEffect(() => {
+    const channel = supabase.channel('accounts-grid-sync')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'accounts'
+        },
+        (payload) => {
+          console.log('Realtime Accounts update received:', payload);
+          setLocalAccounts(prev => prev.map(acc => {
+            if (acc.id === payload.new.id) {
+              return { ...acc, ...payload.new };
+            }
+            return acc;
+          }));
+        }
+      )
+      .on('system', { event: 'phx_reply' }, (payload) => {
+        if (payload?.response?.status === 'error' || payload?.status === 'error') {
+           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'accounts-grid-sync channel error', payload });
+        }
+      })
+      .subscribe((status, err) => {
+        if (err || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'accounts-grid-sync channel connection failed', error: err, status });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const loadMore = async () => {
     try {

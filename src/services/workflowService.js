@@ -28,7 +28,8 @@ export const workflowService = {
     return data;
   },
 
-  async toggle(id, is_active) {
+  async updateWorkflowStatus(id, isActive) {
+    const is_active = isActive;
     const { data, error } = await supabase
       .from('workflows')
       .update({ is_active })
@@ -38,6 +39,8 @@ export const workflowService = {
     if (error) throw error;
     return data;
   },
+
+
 
   async delete(id) {
     const { error } = await supabase

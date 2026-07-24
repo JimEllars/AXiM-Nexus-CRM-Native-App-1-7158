@@ -307,7 +307,8 @@ export const CrmProvider = ({ children }) => {
     setWorkflows(prev => prev.map(w => w.id === workflowId ? { ...w, is_active: !w.is_active } : w));
 
     try {
-      await workflowService.toggle(workflowId, !wf.is_active);
+      await workflowService.updateWorkflowStatus(workflowId, !wf.is_active);
+      toast.success(!wf.is_active ? 'Workflow activated' : 'Workflow deactivated');
     } catch (e) {
       console.error(e);
       // Revert on failure
