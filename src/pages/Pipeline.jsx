@@ -9,6 +9,7 @@ import CreateDealModal from '../components/modals/CreateDealModal';
 import DealDetailModal from '../components/modals/DealDetailModal';
 import { dealService } from '../services/dealService';
 import { activityService } from '../services/activityService';
+import { supabase, logToAsguardDLQ } from '../lib/supabase';
 
 
 const PIPELINE_CONFIGS = {
@@ -121,6 +122,42 @@ const Pipeline = () => {
       setLocalDeals(deals);
     }
   }, [deals, isSwitchingType]);
+
+
+  useEffect(() => {
+    const channel = supabase.channel('pipeline-grid-sync')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'deals'
+        },
+        (payload) => {
+          console.log('Realtime Deals update received in Pipeline:', payload);
+          setLocalDeals(prev => prev.map(deal => {
+            if (deal.id === payload.new.id) {
+              return { ...deal, ...payload.new };
+            }
+            return deal;
+          }));
+        }
+      )
+      .on('system', { event: 'phx_reply' }, (payload) => {
+        if (payload?.response?.status === 'error' || payload?.status === 'error') {
+           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'pipeline-grid-sync channel error', payload });
+        }
+      })
+      .subscribe((status, err) => {
+        if (err || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+           logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'pipeline-grid-sync channel connection failed', error: err, status });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleTypeChange = (newType) => {
     if (pipelineType === newType) return;

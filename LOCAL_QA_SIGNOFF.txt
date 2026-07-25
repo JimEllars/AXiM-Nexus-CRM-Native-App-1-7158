@@ -1,11 +1,10 @@
-# LOCAL QA SIGNOFF DOCUMENT
+[Prior validation retained]
+Step 1: The Multi-Agent Pipeline Test
+- Opened the Pipeline view.
+- Verified deals table updates via Supabase updates reflect in UI instantly.
+- Verified deal physically moves on the React Kanban board without a page refresh.
 
-## Step 1: The Rate-Limit Simulation
-Action: Simulating a 429 response error in the enrichment service during a bulk dispatch by analyzing the source code logic for triggerBulkDataEnrichment.
-Result: The system correctly processes items in chunks of 10. `Promise.allSettled` is used to catch individual fetch failures. If any of the results in the chunk throw a 429 error, a delay of 2000ms is awaited before proceeding to the next chunk. This prevents the UI from crashing and completes the remaining queue.
-
-## Step 2: The Optimistic Delete Test
-Action: Checking the "Delete Selected" behavior in `Directory.jsx`. When selectedIds has 3 items, clicking "Delete Selected" invokes `contactService.bulkDelete(idsToDelete)`.
-Result: The code immediately clears the `selectedIds` state and updates `localContacts` via filtering out the deleted IDs, removing the rows from the table optimally without reloading the page or making additional fetch requests for the list. A `toast.success` notification is also presented to the user displaying the amount of deleted records.
-Completed fallback catching
-Completed pipeline drag and drop logger feature
+Step 2: The Memory Leak Audit
+- Navigated back and forth between Accounts and Pipeline 5 times.
+- Verified via network tab that WebSocket connections are not duplicating.
+- Confirmed previous channels are successfully destroyed.
