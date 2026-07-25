@@ -8,8 +8,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Dead Letter Queue Interceptor Stub
-export const logToAsguardDLQ = (errorPayload) => {
+export const logToAsguardDLQ = async (errorPayload) => {
   console.error('[ASGUARD-DLQ-ROUTING]', errorPayload);
+  try {
+    const interceptorUrl = import.meta.env.VITE_ASGUARD_INTERCEPTOR_URL || 'https://api.axim.us.com/v1/telemetry/ingress';
+    await fetch(interceptorUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        app_id: 'AXIM_NEXUS_CRM',
+        event_type: 'HTTP_5XX_INTERCEPT',
+        payload: errorPayload,
+        timestamp: new Date().toISOString()
+      })
+    });
+  } catch (err) {
+    console.warn('[ASGUARD-DLQ-DISPATCH-FAILED]', err);
+  }
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

@@ -1,10 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
+import { supabase, logToAsguardDLQ } from '../lib/supabase';
 
 const OperationalSwarm = () => {
-  const { tasks, toggleTaskStatus, deals, contacts } = useCrm();
+  const { tasks, toggleTaskStatus, deals, contacts, refreshData } = useCrm();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('operational-swarm-tasks-sync')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'tasks'
+      }, (payload) => {
+        console.log('Realtime task event received in OperationalSwarm:', payload);
+        refreshData(true);
+      })
+      .subscribe((status, err) => {
+        if (err || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          logToAsguardDLQ({ type: 'REALTIME_ERROR', message: 'operational-swarm-tasks-sync error', error: err, status });
+        }
+      });
+
+    return () => { supabase.removeChannel(channel); };
+  }, [refreshData]);
 
   const getEntityName = (task) => {
     if (task.deal_id) return deals.find(d => d.id === task.deal_id)?.title;
