@@ -1,10 +1,14 @@
-[Prior validation retained]
-Step 1: The Multi-Agent Pipeline Test
-- Opened the Pipeline view.
-- Verified deals table updates via Supabase updates reflect in UI instantly.
-- Verified deal physically moves on the React Kanban board without a page refresh.
+LOCAL QA SIGNOFF - Sprint 1.30
 
-Step 2: The Memory Leak Audit
-- Navigated back and forth between Accounts and Pipeline 5 times.
-- Verified via network tab that WebSocket connections are not duplicating.
-- Confirmed previous channels are successfully destroyed.
+Step 1: The Edge Timeout Test
+- Artificially set AbortController timeout to 1ms in OperationalSwarm.jsx.
+- Verified that deploying an AI Swarm triggers an immediate timeout.
+- Verified the UI unfreezes immediately.
+- Verified the error toast: 'AI Swarm initialization timed out at the edge. Please retry.' appears.
+- Verified the system log correctly logged the ERROR event to activityService.
+- Reset the timeout back to 15000ms.
+
+Step 2: The Realtime Bell Test
+- In a separate DB client, manually inserted a record into the activities table with type SWARM_COMPLETE.
+- Verified the red badge appears on the TopNav bell instantly without a page refresh.
+- Verified clicking the bell icon resets the unread count and opens the new dropdown panel.
