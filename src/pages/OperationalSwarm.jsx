@@ -3,8 +3,36 @@ import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { supabase, logToAsguardDLQ } from '../lib/supabase';
+import { toast } from 'react-toastify';
+import { activityService } from '../services/activityService';
 
 const OperationalSwarm = () => {
+  const [delegationForm, setDelegationForm] = React.useState({ agent: '', context: '' });
+  const [isDeploying, setIsDeploying] = React.useState(false);
+
+  const handleDeploySwarm = async (e) => {
+    e.preventDefault();
+    if (!delegationForm.agent || !delegationForm.context) {
+       toast.error('Please complete all delegation fields.');
+       return;
+    }
+
+    setIsDeploying(true);
+    try {
+      // Simulate Cloudflare Worker API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      await activityService.logSystemActivity(`AI Swarm deployed: ${delegationForm.agent}. Context: ${delegationForm.context.substring(0, 50)}...`);
+
+      toast.success(`AI Swarm '${delegationForm.agent}' deployed to edge worker.`);
+      setDelegationForm({ agent: '', context: '' });
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to deploy Swarm');
+    } finally {
+      setIsDeploying(false);
+    }
+  };
   const { tasks, toggleTaskStatus, deals, contacts, refreshData } = useCrm();
 
   useEffect(() => {
@@ -129,7 +157,50 @@ const OperationalSwarm = () => {
             <SafeIcon icon={FiIcons.FiZap} className="absolute -bottom-6 -right-6 text-9xl text-white/10" />
           </div>
 
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
+            <h4 className="text-sm font-black text-slate-900 mb-4 flex items-center space-x-2">
+              <SafeIcon icon={FiIcons.FiCpu} className="text-indigo-500" />
+              <span>AI Task Swarm Delegation</span>
+            </h4>
+            <form onSubmit={handleDeploySwarm} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Select Target AI Agent</label>
+                <select
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                  value={delegationForm.agent}
+                  onChange={(e) => setDelegationForm({...delegationForm, agent: e.target.value})}
+                  disabled={isDeploying}
+                >
+                  <option value="">-- Select an Agent --</option>
+                  <option value="Lead Qualifier AI">Lead Qualifier AI</option>
+                  <option value="Retention AI">Retention AI</option>
+                  <option value="Billing AI">Billing AI</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Delegation Context</label>
+                <textarea
+                  rows="3"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                  placeholder="Provide context and constraints for the AI agent..."
+                  value={delegationForm.context}
+                  onChange={(e) => setDelegationForm({...delegationForm, context: e.target.value})}
+                  disabled={isDeploying}
+                ></textarea>
+              </div>
+              <button
+                type="submit"
+                disabled={isDeploying}
+                className="w-full py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
+              >
+                {isDeploying ? 'Deploying to Edge...' : 'Deploy Swarm'}
+              </button>
+            </form>
+          </div>
+
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+
             <h4 className="text-sm font-black text-slate-900 mb-4 flex items-center space-x-2">
               <SafeIcon icon={FiIcons.FiCpu} className="text-indigo-500" />
               <span>Onyx Insights Feed</span>
