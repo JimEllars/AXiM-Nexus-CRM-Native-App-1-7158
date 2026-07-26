@@ -8,6 +8,7 @@ import BulkAddContactsModal from '../components/modals/BulkAddContactsModal';
 import { useDebounce } from '../hooks/useDebounce';
 import { contactService } from '../services/contactService';
 import { enrichmentService } from '../services/enrichmentService';
+import { activityService } from '../services/activityService';
 import { toast } from 'react-toastify';
 
 const Directory = () => {
@@ -162,6 +163,7 @@ const Directory = () => {
                 try {
                   await contactService.bulkDelete(idsToDelete);
                   toast.success(`Successfully deleted ${idsToDelete.length} records`);
+                  await activityService.logSystemActivity(`Bulk deleted ${idsToDelete.length} contact records.`);
                   setLocalContacts(prev => prev.filter(c => !idsToDelete.includes(c.id)));
                   setSelectedIds([]);
                 } catch (e) {
@@ -183,6 +185,7 @@ const Directory = () => {
                 try {
                   await enrichmentService.triggerBulkDataEnrichment(entities);
                   toast.success("Bulk enrichment completed.");
+                  await activityService.logSystemActivity(`Triggered bulk enrichment for ${entities.length} contact records.`);
                 } catch(e) {
                   toast.error("Bulk enrichment encountered errors.");
                 }
