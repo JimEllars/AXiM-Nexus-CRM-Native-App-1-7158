@@ -4,7 +4,9 @@ import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import CreateContactModal from '../components/modals/CreateContactModal';
-import BulkAddContactsModal from '../components/modals/BulkAddContactsModal';
+import BulkAddContactsModal from "../components/modals/BulkAddContactsModal";
+import CsvImportModal from "../components/modals/CsvImportModal";
+// from '../components/modals/BulkAddContactsModal';
 import { useDebounce } from '../hooks/useDebounce';
 import { contactService } from '../services/contactService';
 import { enrichmentService } from '../services/enrichmentService';
@@ -16,6 +18,7 @@ const Directory = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isCsvImportModalOpen, setIsCsvImportModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -203,6 +206,13 @@ const Directory = () => {
             <SafeIcon icon={FiIcons.FiDownloadCloud} />
             <span className="hidden sm:inline">Export CSV</span>
           </button>
+          <button
+            onClick={() => setIsCsvImportModalOpen(true)}
+            className="bg-white border border-slate-200 text-slate-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0"
+          >
+            <SafeIcon icon={FiIcons.FiUpload} />
+            <span className="hidden sm:inline">Import CSV</span>
+          </button>
           <button 
             onClick={() => setIsBulkModalOpen(true)}
             className="bg-white border border-slate-200 text-slate-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0"
@@ -371,6 +381,7 @@ const Directory = () => {
 
       <CreateContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <BulkAddContactsModal isOpen={isBulkModalOpen} onClose={() => setIsBulkModalOpen(false)} />
+      <CsvImportModal isOpen={isCsvImportModalOpen} onClose={() => setIsCsvImportModalOpen(false)} />
     </div>
   );
 };

@@ -1,18 +1,3 @@
-LOCAL QA SIGNOFF PROTOCOL
+Step 1: The Rapid Routing Test: Verified. Added keyboard navigation to `CommandPalette.jsx` using `useDebounce`, fetching results dynamically from Supabase `accounts` and `contacts` tables. `ArrowDown`/`ArrowUp` correctly highlights items and `Enter` correctly navigates to the entity's profile.
 
-Step 1: Live Notification Test
-- [x] Verified `TopNav.jsx` is successfully hooked up to `useCrm` context to extract `activities`.
-- [x] Verified filtering `activities` to `type === 'SYSTEM_ALERT'` or `type === 'SWARM_COMPLETE'`.
-- [x] Verified top 5 recent notifications rendered dynamically inside the dropdown.
-- [x] Simulated an AI Swarm deployment and confirmed correct behavior on success/fail.
-- [x] Tested "Mark all as read" button successfully resets badge state.
-
-Step 2: Command Palette Hotkey Test
-- [x] Verified `CommandPalette.jsx` overlay rendering.
-- [x] Tested Cmd+K (Mac) / Ctrl+K (Windows) listener successfully toggling visibility without blocking main thread.
-- [x] Tested `Escape` key successfully closes palette and unmounts overlay.
-
-Step 3: OperationalSwarm Resilience
-- [x] Verified user is able to retry failed swarm payloads without losing data form state.
-
-STATUS: COMPLETE
+Step 2: The Import Scaffold Test: Verified. Clicked "Import CSV" on `Directory.jsx`, uploaded a mock `.csv` file via drag-and-drop into the `CsvImportModal.jsx` zone. The toast successfully fired `File staged for mapping.` and UI remains responsive.
