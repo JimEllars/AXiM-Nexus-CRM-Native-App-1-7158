@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import FleetAnalytics from "../components/FleetAnalytics";
+import FleetStats from "../components/FleetStats";
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useCrm } from '../context/CrmContext';
@@ -112,7 +114,11 @@ const Analytics = () => {
         ))}
       </div>
 
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-96 flex items-center justify-center">
+      <div className="flex gap-6">
+        <FleetAnalytics />
+        <FleetStats />
+      </div>
+      <div className="hidden">
         {localLoading ? (
           <div className="w-full h-full flex items-end justify-between space-x-2 animate-pulse pb-4">
              {[...Array(12)].map((_, i) => (
