@@ -1,7 +1,6 @@
 import React from 'react';
 import { useCrm } from '../context/CrmContext';
 import { useNavigate } from 'react-router-dom';
-import ProfitabilityHUD from "../components/ProfitabilityHUD";
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
@@ -154,7 +153,6 @@ const Dashboard = () => {
 
         {/* High Confidence List */}
         <div className="space-y-6">
-          <ProfitabilityHUD />
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
             <h3 className="font-black text-slate-900 mb-6 uppercase tracking-widest text-xs flex items-center justify-between">
               <span>High Probability</span>

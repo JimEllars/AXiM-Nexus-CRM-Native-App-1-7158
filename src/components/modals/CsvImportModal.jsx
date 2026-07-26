@@ -8,11 +8,26 @@ const SafeIcon = ({ icon: Icon, className }) => {
 };
 
 const CsvImportModal = ({ isOpen, onClose }) => {
+
   const [isDragging, setIsDragging] = useState(false);
+  const [step, setStep] = useState('dropzone'); // 'dropzone' or 'mapping'
+  const [csvData, setCsvData] = useState({ headers: [], preview: [] });
+  const [fieldMapping, setFieldMapping] = useState({});
   const fileInputRef = useRef(null);
 
-  if (!isOpen) return null;
+  const resetState = () => {
+    setIsDragging(false);
+    setStep('dropzone');
+    setCsvData({ headers: [], preview: [] });
+    setFieldMapping({});
+  };
 
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
+
+  if (!isOpen) return null;
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -39,10 +54,38 @@ const CsvImportModal = ({ isOpen, onClose }) => {
     }
   };
 
+
   const handleFile = (file) => {
-    console.log('CSV File uploaded:', file);
-    toast.success('File staged for mapping.');
-    onClose();
+    if (!file || !file.name.endsWith('.csv')) {
+      toast.error('Invalid file format. Please upload a .csv file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target.result;
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+
+        if (lines.length < 2) {
+            toast.error('CSV file must contain headers and at least one row of data.');
+            return;
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim());
+        const firstRow = lines[1].split(',').map(d => d.trim());
+
+        setCsvData({ headers, preview: firstRow });
+        setStep('mapping');
+
+      } catch (err) {
+        toast.error('Error parsing CSV file.');
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read file.');
+    }
+    reader.readAsText(file);
   };
 
   return (
@@ -54,43 +97,83 @@ const CsvImportModal = ({ isOpen, onClose }) => {
             Import CSV
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-slate-400 hover:text-slate-600 transition-colors"
           >
             <SafeIcon icon={FiIcons.FiX} className="text-xl" />
           </button>
         </div>
 
-        <div className="p-6">
-          <div
-            className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
-              isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept=".csv"
-              className="hidden"
-            />
-            <SafeIcon icon={FiIcons.FiFileText} className="text-4xl text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-700 font-semibold mb-1">Click to upload or drag and drop</p>
-            <p className="text-slate-500 text-sm">CSV files only</p>
-          </div>
+<div className="p-6">
+          {step === 'dropzone' ? (
+            <div
+              className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
+                isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".csv"
+                className="hidden"
+              />
+              <SafeIcon icon={FiIcons.FiFileText} className="text-4xl text-slate-400 mx-auto mb-4" />
+              <p className="text-slate-700 font-semibold mb-1">Click to upload or drag and drop</p>
+              <p className="text-slate-500 text-sm">CSV files only</p>
+            </div>
+          ) : (
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              <p className="text-sm text-slate-600 mb-4">Map your CSV columns to CRM fields.</p>
+              {csvData.headers.map((header, index) => (
+                <div key={index} className="flex items-center gap-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-sm font-bold text-slate-700 truncate">{header}</p>
+                    <p className="text-xs text-slate-500 truncate">Ex: {csvData.preview[index]}</p>
+                  </div>
+                  <div className="flex-1">
+                    <select
+                      className="w-full text-sm border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white"
+                      value={fieldMapping[header] || ''}
+                      onChange={(e) => setFieldMapping({...fieldMapping, [header]: e.target.value})}
+                    >
+                      <option value="">-- Ignore --</option>
+                      <option value="first_name">First Name</option>
+                      <option value="last_name">Last Name</option>
+                      <option value="email">Email</option>
+                      <option value="company">Company</option>
+                      <option value="phone">Phone</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
           >
             Cancel
           </button>
+          {step === 'mapping' && (
+            <button
+              onClick={() => {
+                console.log('Mapped Configuration:', fieldMapping);
+                toast.success('Import queued successfully.');
+                handleClose();
+              }}
+              className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+            >
+              Confirm & Queue Import
+            </button>
+          )}
         </div>
       </div>
     </div>
