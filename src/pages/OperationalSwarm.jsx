@@ -5,6 +5,7 @@ import * as FiIcons from 'react-icons/fi';
 import { supabase, logToAsguardDLQ } from '../lib/supabase';
 import { toast } from 'react-toastify';
 import { activityService } from '../services/activityService';
+import { swarmService } from '../services/swarmService';
 
 const OperationalSwarm = () => {
   const [delegationForm, setDelegationForm] = React.useState({ agent: '', context: '' });
@@ -18,17 +19,30 @@ const OperationalSwarm = () => {
     }
 
     setIsDeploying(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15000ms timeout
+
     try {
-      // Simulate Cloudflare Worker API call
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await swarmService.deploySwarmAgent(
+        delegationForm.agent,
+        delegationForm.context,
+        controller.signal
+      );
+      clearTimeout(timeoutId);
 
       await activityService.logSystemActivity(`AI Swarm deployed: ${delegationForm.agent}. Context: ${delegationForm.context.substring(0, 50)}...`);
 
       toast.success(`AI Swarm '${delegationForm.agent}' deployed to edge worker.`);
       setDelegationForm({ agent: '', context: '' });
     } catch (err) {
-      console.error(err);
-      toast.error('Failed to deploy Swarm');
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        activityService.logSystemActivity(`ERROR: AI Swarm initialization timed out at the edge. Agent: ${delegationForm.agent}`).catch(console.error);
+        toast.error('AI Swarm initialization timed out at the edge. Please retry.');
+      } else {
+        console.error(err);
+        toast.error('Failed to deploy Swarm');
+      }
     } finally {
       setIsDeploying(false);
     }

@@ -4,6 +4,7 @@ import { useCrm } from '../context/CrmContext';
 import { useDebounce } from '../hooks/useDebounce';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
+import { supabase } from '../lib/supabase';
 
 const TopNav = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -14,6 +15,14 @@ const TopNav = ({ toggleSidebar }) => {
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [searchError, setSearchError] = useState(false);
   const searchRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: 'Swarm deployment completed successfully.' },
+    { id: 2, message: 'System alert: High CPU load on Node 4.' },
+    { id: 3, message: 'Onyx Mk3 generated 5 new tasks.' }
+  ]);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -94,7 +103,29 @@ const TopNav = ({ toggleSidebar }) => {
   }, [isSearchOpen, searchResults, focusedIndex, navigate]);
 
   useEffect(() => {
+    const channel = supabase
+      .channel('topnav-activities-sync')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'activities'
+      }, (payload) => {
+        if (payload.new && (payload.new.type === 'SYSTEM_ALERT' || payload.new.type === 'SWARM_COMPLETE')) {
+          setUnreadCount(prev => prev + 1);
+        }
+      })
+      .subscribe((status, err) => {
+        if (err) console.error('TopNav Realtime sync error:', err);
+      });
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsSearchOpen(false);
       }
@@ -162,10 +193,37 @@ const TopNav = ({ toggleSidebar }) => {
       </div>
 
       <div className="flex items-center space-x-4 lg:space-x-6">
-        <button className="text-slate-400 hover:text-slate-600 relative transition-colors">
-          <SafeIcon icon={FiIcons.FiBell} className="text-xl" />
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
-        </button>
+        <div className="relative" ref={dropdownRef}>
+          <button
+            className="text-slate-400 hover:text-slate-600 relative transition-colors"
+            onClick={() => {
+              setIsDropdownOpen(!isDropdownOpen);
+              if (!isDropdownOpen) setUnreadCount(0);
+            }}
+          >
+            <SafeIcon icon={FiIcons.FiBell} className="text-xl" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-rose-500 rounded-full border-2 border-white text-[8px] text-white flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden z-50">
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                <h3 className="text-sm font-bold text-slate-800">Recent Notifications</h3>
+              </div>
+              <ul className="max-h-64 overflow-y-auto">
+                {notifications.map((notif) => (
+                  <li key={notif.id} className="px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer">
+                    <p className="text-xs text-slate-600">{notif.message}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
         <div className="flex items-center space-x-3 pl-4 lg:pl-6 border-l border-slate-200 cursor-pointer group">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">Internal Admin</p>
