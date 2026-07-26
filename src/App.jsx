@@ -19,6 +19,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import CommandPalette from './components/modals/CommandPalette';
 
 const MainLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -44,6 +45,7 @@ const MainLayout = ({ children }) => {
 function App() {
   return (
     <CrmProvider>
+      <CommandPalette />
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="light" />
       <Router>
         <Routes>

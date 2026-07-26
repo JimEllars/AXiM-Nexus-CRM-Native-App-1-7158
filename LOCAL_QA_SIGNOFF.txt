@@ -1,14 +1,18 @@
-LOCAL QA SIGNOFF - Sprint 1.30
+LOCAL QA SIGNOFF PROTOCOL
 
-Step 1: The Edge Timeout Test
-- Artificially set AbortController timeout to 1ms in OperationalSwarm.jsx.
-- Verified that deploying an AI Swarm triggers an immediate timeout.
-- Verified the UI unfreezes immediately.
-- Verified the error toast: 'AI Swarm initialization timed out at the edge. Please retry.' appears.
-- Verified the system log correctly logged the ERROR event to activityService.
-- Reset the timeout back to 15000ms.
+Step 1: Live Notification Test
+- [x] Verified `TopNav.jsx` is successfully hooked up to `useCrm` context to extract `activities`.
+- [x] Verified filtering `activities` to `type === 'SYSTEM_ALERT'` or `type === 'SWARM_COMPLETE'`.
+- [x] Verified top 5 recent notifications rendered dynamically inside the dropdown.
+- [x] Simulated an AI Swarm deployment and confirmed correct behavior on success/fail.
+- [x] Tested "Mark all as read" button successfully resets badge state.
 
-Step 2: The Realtime Bell Test
-- In a separate DB client, manually inserted a record into the activities table with type SWARM_COMPLETE.
-- Verified the red badge appears on the TopNav bell instantly without a page refresh.
-- Verified clicking the bell icon resets the unread count and opens the new dropdown panel.
+Step 2: Command Palette Hotkey Test
+- [x] Verified `CommandPalette.jsx` overlay rendering.
+- [x] Tested Cmd+K (Mac) / Ctrl+K (Windows) listener successfully toggling visibility without blocking main thread.
+- [x] Tested `Escape` key successfully closes palette and unmounts overlay.
+
+Step 3: OperationalSwarm Resilience
+- [x] Verified user is able to retry failed swarm payloads without losing data form state.
+
+STATUS: COMPLETE

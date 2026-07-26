@@ -10,6 +10,7 @@ import { swarmService } from '../services/swarmService';
 const OperationalSwarm = () => {
   const [delegationForm, setDelegationForm] = React.useState({ agent: '', context: '' });
   const [isDeploying, setIsDeploying] = React.useState(false);
+  const [deployFailed, setDeployFailed] = React.useState(false);
 
   const handleDeploySwarm = async (e) => {
     e.preventDefault();
@@ -19,6 +20,7 @@ const OperationalSwarm = () => {
     }
 
     setIsDeploying(true);
+    setDeployFailed(false);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15000ms timeout
 
@@ -34,14 +36,17 @@ const OperationalSwarm = () => {
 
       toast.success(`AI Swarm '${delegationForm.agent}' deployed to edge worker.`);
       setDelegationForm({ agent: '', context: '' });
+      setDeployFailed(false);
     } catch (err) {
       clearTimeout(timeoutId);
       if (err.name === 'AbortError') {
         activityService.logSystemActivity(`ERROR: AI Swarm initialization timed out at the edge. Agent: ${delegationForm.agent}`).catch(console.error);
         toast.error('AI Swarm initialization timed out at the edge. Please retry.');
+        setDeployFailed(true);
       } else {
         console.error(err);
         toast.error('Failed to deploy Swarm');
+        setDeployFailed(true);
       }
     } finally {
       setIsDeploying(false);
@@ -183,7 +188,10 @@ const OperationalSwarm = () => {
                 <select
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                   value={delegationForm.agent}
-                  onChange={(e) => setDelegationForm({...delegationForm, agent: e.target.value})}
+                  onChange={(e) => {
+                    setDelegationForm({...delegationForm, agent: e.target.value});
+                    setDeployFailed(false);
+                  }}
                   disabled={isDeploying}
                 >
                   <option value="">-- Select an Agent --</option>
@@ -199,16 +207,19 @@ const OperationalSwarm = () => {
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                   placeholder="Provide context and constraints for the AI agent..."
                   value={delegationForm.context}
-                  onChange={(e) => setDelegationForm({...delegationForm, context: e.target.value})}
+                  onChange={(e) => {
+                    setDelegationForm({...delegationForm, context: e.target.value});
+                    setDeployFailed(false);
+                  }}
                   disabled={isDeploying}
                 ></textarea>
               </div>
               <button
                 type="submit"
                 disabled={isDeploying}
-                className="w-full py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
+                className={`w-full py-2 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 ${deployFailed ? 'bg-rose-600 hover:bg-rose-700' : 'bg-slate-900 hover:bg-indigo-600'}`}
               >
-                {isDeploying ? 'Deploying to Edge...' : 'Deploy Swarm'}
+                {isDeploying ? 'Deploying to Edge...' : (deployFailed ? 'Retry Deployment' : 'Deploy Swarm')}
               </button>
             </form>
           </div>

@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
 
 const TopNav = ({ toggleSidebar }) => {
   const navigate = useNavigate();
-  const { contacts, accounts, deals } = useCrm();
+  const { contacts, accounts, deals, activities } = useCrm();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -18,11 +18,12 @@ const TopNav = ({ toggleSidebar }) => {
   const dropdownRef = useRef(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, message: 'Swarm deployment completed successfully.' },
-    { id: 2, message: 'System alert: High CPU load on Node 4.' },
-    { id: 3, message: 'Onyx Mk3 generated 5 new tasks.' }
-  ]);
+
+
+  const liveNotifications = (activities || [])
+    .filter(a => a.type === 'SYSTEM_ALERT' || a.type === 'SWARM_COMPLETE')
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+    .slice(0, 5);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -215,12 +216,27 @@ const TopNav = ({ toggleSidebar }) => {
                 <h3 className="text-sm font-bold text-slate-800">Recent Notifications</h3>
               </div>
               <ul className="max-h-64 overflow-y-auto">
-                {notifications.map((notif) => (
-                  <li key={notif.id} className="px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer">
-                    <p className="text-xs text-slate-600">{notif.message}</p>
-                  </li>
-                ))}
+                {liveNotifications.length > 0 ? (
+                  liveNotifications.map((notif) => (
+                    <li key={notif.id} className="px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer">
+                      <p className="text-xs text-slate-600">{notif.description || notif.message || notif.title || 'Notification'}</p>
+                    </li>
+                  ))
+                ) : (
+                  <li className="px-4 py-3 text-xs text-slate-500 text-center">No recent notifications</li>
+                )}
               </ul>
+              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
+                <button
+                  onClick={() => {
+                    setUnreadCount(0);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors text-center py-1"
+                >
+                  Mark all as read
+                </button>
+              </div>
             </div>
           )}
         </div>
