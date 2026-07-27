@@ -1,18 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useCrm } from '../context/CrmContext';
 import { supabase, logToAsguardDLQ } from '../lib/supabase';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const mockPipelineVelocity = [
-  { name: 'Jan', value: 4000 },
-  { name: 'Feb', value: 3000 },
-  { name: 'Mar', value: 2000 },
-  { name: 'Apr', value: 2780 },
-  { name: 'May', value: 1890 },
-  { name: 'Jun', value: 2390 },
-];
 
 const mockSwarmTasks = [
   { name: 'Mon', tasks: 120 },
@@ -25,7 +16,7 @@ const mockSwarmTasks = [
 ];
 
 const Analytics = () => {
-  const { loading } = useCrm();
+  const { loading, deals } = useCrm();
   const [localLoading, setLocalLoading] = useState(true);
   const [pipelineVelocity, setPipelineVelocity] = useState(null);
   const [winRate, setWinRate] = useState(null);
@@ -61,6 +52,20 @@ const Analytics = () => {
     }
   }, [loading]);
 
+  const pipelineVelocityData = useMemo(() => {
+      if (!deals || deals.length === 0) return [];
+
+      const stageCounts = deals.reduce((acc, deal) => {
+          const stage = deal.stage || 'Unknown';
+          acc[stage] = (acc[stage] || 0) + 1;
+          return acc;
+      }, {});
+
+      return Object.entries(stageCounts).map(([name, value]) => ({
+          name,
+          value
+      }));
+  }, [deals]);
 
   // Simulate local loading of chart data to harden the shell
   useEffect(() => {
@@ -137,7 +142,7 @@ const Analytics = () => {
           <h3 className="text-slate-200 font-bold mb-4">Pipeline Velocity</h3>
           <div className="flex-1 w-full h-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockPipelineVelocity}>
+              <BarChart data={pipelineVelocityData.length > 0 ? pipelineVelocityData : [{ name: 'No Data', value: 0 }]}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                 <XAxis dataKey="name" stroke="#94a3b8" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                 <YAxis stroke="#94a3b8" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />

@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react';
 import * as FiIcons from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { contactService } from '../../services/contactService';
+import { activityService } from '../../services/activityService';
+import { useCrm } from '../../context/CrmContext';
 
 const SafeIcon = ({ icon: Icon, className }) => {
   if (!Icon) return null;
@@ -8,21 +11,24 @@ const SafeIcon = ({ icon: Icon, className }) => {
 };
 
 const CsvImportModal = ({ isOpen, onClose }) => {
-
+  const { refreshData } = useCrm();
   const [isDragging, setIsDragging] = useState(false);
   const [step, setStep] = useState('dropzone'); // 'dropzone' or 'mapping'
-  const [csvData, setCsvData] = useState({ headers: [], preview: [] });
+  const [csvData, setCsvData] = useState({ headers: [], preview: [], allData: [] });
   const [fieldMapping, setFieldMapping] = useState({});
+  const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef(null);
 
   const resetState = () => {
     setIsDragging(false);
     setStep('dropzone');
-    setCsvData({ headers: [], preview: [] });
+    setCsvData({ headers: [], preview: [], allData: [] });
     setFieldMapping({});
+    setIsImporting(false);
   };
 
   const handleClose = () => {
+    if (isImporting) return;
     resetState();
     onClose();
   };
@@ -75,7 +81,10 @@ const CsvImportModal = ({ isOpen, onClose }) => {
         const headers = lines[0].split(',').map(h => h.trim());
         const firstRow = lines[1].split(',').map(d => d.trim());
 
-        setCsvData({ headers, preview: firstRow });
+        // Store all data for the final import
+        const allData = lines.slice(1).map(line => line.split(',').map(d => d.trim()));
+
+        setCsvData({ headers, preview: firstRow, allData });
         setStep('mapping');
 
       } catch (err) {
@@ -88,6 +97,51 @@ const CsvImportModal = ({ isOpen, onClose }) => {
     reader.readAsText(file);
   };
 
+  const handleConfirmImport = async () => {
+    try {
+      setIsImporting(true);
+
+      const mappedContacts = csvData.allData.map(row => {
+        const contact = {};
+        csvData.headers.forEach((header, index) => {
+          const dbField = fieldMapping[header];
+          if (dbField && dbField !== '') {
+            contact[dbField] = row[index];
+          }
+        });
+
+        // Ensure required fields like type are set if not mapped
+        if (!contact.type) {
+            contact.type = 'B2B_LEAD';
+        }
+
+        return contact;
+      }).filter(contact => Object.keys(contact).length > 1); // Filter out empty maps (only 'type')
+
+      if (mappedContacts.length === 0) {
+        toast.error('No valid mappings found. Please map at least one field.');
+        setIsImporting(false);
+        return;
+      }
+
+      await contactService.bulkImportContacts(mappedContacts);
+      await activityService.logSystemActivity(`Operator bulk imported ${mappedContacts.length} contact records via CSV.`);
+
+      toast.success('Import completed successfully.');
+
+      if (refreshData) {
+          refreshData();
+      }
+
+      handleClose();
+    } catch (err) {
+      console.error('Import failed:', err);
+      toast.error('Failed to import contacts. Please try again.');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
@@ -98,13 +152,14 @@ const CsvImportModal = ({ isOpen, onClose }) => {
           </h2>
           <button
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            disabled={isImporting}
+            className="text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
           >
             <SafeIcon icon={FiIcons.FiX} className="text-xl" />
           </button>
         </div>
 
-<div className="p-6">
+        <div className="p-6">
           {step === 'dropzone' ? (
             <div
               className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
@@ -140,6 +195,7 @@ const CsvImportModal = ({ isOpen, onClose }) => {
                       className="w-full text-sm border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white"
                       value={fieldMapping[header] || ''}
                       onChange={(e) => setFieldMapping({...fieldMapping, [header]: e.target.value})}
+                      disabled={isImporting}
                     >
                       <option value="">-- Ignore --</option>
                       <option value="first_name">First Name</option>
@@ -158,20 +214,19 @@ const CsvImportModal = ({ isOpen, onClose }) => {
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
           <button
             onClick={handleClose}
-            className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
+            disabled={isImporting}
+            className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           {step === 'mapping' && (
             <button
-              onClick={() => {
-                console.log('Mapped Configuration:', fieldMapping);
-                toast.success('Import queued successfully.');
-                handleClose();
-              }}
-              className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+              onClick={handleConfirmImport}
+              disabled={isImporting}
+              className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
             >
-              Confirm & Queue Import
+              {isImporting && <SafeIcon icon={FiIcons.FiLoader} className="animate-spin" />}
+              {isImporting ? 'Importing...' : 'Confirm & Queue Import'}
             </button>
           )}
         </div>
