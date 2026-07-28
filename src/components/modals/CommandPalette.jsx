@@ -156,18 +156,18 @@ const CommandPalette = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-32 bg-slate-900/40 backdrop-blur-sm transition-opacity">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-        <div className="flex items-center px-4 py-3 border-b border-slate-100">
+      <div className="w-full max-w-2xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center px-4 py-3 border-b border-slate-100 dark:border-slate-700">
           <SafeIcon icon={FiIcons.FiSearch} className="text-xl text-slate-400 mr-3" />
           <input
             ref={inputRef}
             type="text"
-            className="flex-1 text-lg text-slate-800 placeholder-slate-400 bg-transparent border-none outline-none focus:ring-0"
+            className="flex-1 text-lg text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 bg-transparent border-none outline-none focus:ring-0"
             placeholder="Type a command or search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <div className="flex items-center space-x-2 text-xs font-semibold text-slate-400 font-mono bg-slate-100 px-2 py-1 rounded">
+          <div className="flex items-center space-x-2 text-xs font-semibold text-slate-400 font-mono bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">
             <span>ESC</span>
           </div>
         </div>
@@ -175,8 +175,8 @@ const CommandPalette = () => {
         {search && (
           <div className="max-h-96 overflow-y-auto">
             {isSearching ? (
-              <div className="px-4 py-8 text-center bg-slate-50">
-                <p className="text-sm text-slate-500 flex items-center justify-center gap-2">
+              <div className="px-4 py-8 text-center bg-slate-50 dark:bg-slate-800/50">
+                <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2">
                   <SafeIcon icon={FiIcons.FiLoader} className="animate-spin" />
                   Searching...
                 </p>
@@ -186,8 +186,8 @@ const CommandPalette = () => {
                 {results.map((item, index) => (
                   <li
                     key={`${item.type}-${item.id}`}
-                    className={`px-4 py-3 cursor-pointer border-b border-slate-100 last:border-0 flex justify-between items-center ${
-                      focusedIndex === index ? 'bg-indigo-50 border-l-4 border-l-indigo-500' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
+                    className={`px-4 py-3 cursor-pointer border-b border-slate-100 dark:border-slate-700 last:border-0 flex justify-between items-center ${
+                      focusedIndex === index ? 'bg-indigo-50 dark:bg-indigo-900/30 border-l-4 border-l-indigo-500' : 'hover:bg-slate-50 dark:hover:bg-slate-700 border-l-4 border-l-transparent'
                     }`}
                     onClick={() => {
                       navigate(item.link);
@@ -198,28 +198,28 @@ const CommandPalette = () => {
                     onMouseEnter={() => setFocusedIndex(index)}
                   >
                     <div>
-                      <span className="text-sm font-semibold text-slate-800 block">{item.title}</span>
-                      {item.subtitle && <span className="text-xs text-slate-500">{item.subtitle}</span>}
+                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 block">{item.title}</span>
+                      {item.subtitle && <span className="text-xs text-slate-500 dark:text-slate-400">{item.subtitle}</span>}
                     </div>
-                    <span className="text-xs font-bold text-slate-400 uppercase bg-slate-100 px-2 py-1 rounded">
+                    <span className="text-xs font-bold text-slate-400 uppercase bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">
                       {item.type}
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <div className="px-4 py-8 text-center bg-slate-50">
-                <p className="text-sm text-slate-500">No results found for "{search}"</p>
+              <div className="px-4 py-8 text-center bg-slate-50 dark:bg-slate-800/50">
+                <p className="text-sm text-slate-500 dark:text-slate-400">No results found for "{search}"</p>
               </div>
             )}
           </div>
         )}
 
         {!search && (
-          <div className="px-4 py-8 text-center bg-slate-50">
-            <p className="text-sm text-slate-500">Start typing to search contacts and accounts...</p>
+          <div className="px-4 py-8 text-center bg-slate-50 dark:bg-slate-800/50">
+            <p className="text-sm text-slate-500 dark:text-slate-400">Start typing to search contacts and accounts...</p>
             <p className="text-xs text-slate-400 mt-2">
-              Use <kbd className="font-mono bg-white px-1 py-0.5 rounded border border-slate-200 shadow-sm">↑</kbd> and <kbd className="font-mono bg-white px-1 py-0.5 rounded border border-slate-200 shadow-sm">↓</kbd> to navigate, <kbd className="font-mono bg-white px-1 py-0.5 rounded border border-slate-200 shadow-sm">Enter</kbd> to select
+              Use <kbd className="font-mono bg-white dark:bg-slate-700 px-1 py-0.5 rounded border border-slate-200 dark:border-slate-600 shadow-sm">↑</kbd> and <kbd className="font-mono bg-white dark:bg-slate-700 px-1 py-0.5 rounded border border-slate-200 dark:border-slate-600 shadow-sm">↓</kbd> to navigate, <kbd className="font-mono bg-white dark:bg-slate-700 px-1 py-0.5 rounded border border-slate-200 dark:border-slate-600 shadow-sm">Enter</kbd> to select
             </p>
           </div>
         )}
