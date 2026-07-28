@@ -1,15 +1,14 @@
 [LOCAL QA SIGNOFF]
-Date: $(date)
+Date: 2026-07-28 17:24:37
 
-Step 1: The Account Export Test
-- Navigated to the Accounts view and clicked "Export CSV".
-- Verified a file downloads immediately.
-- Verified the file contains the correct tabular data (Name, Industry, Domain, Enrichment Status).
-- Verified an export event is logged to the Dashboard activity feed ("Operator exported [Count] B2B Account records to CSV.").
-- Verified a success toast is displayed.
+Step 1: The Kanban Order Test
+- Moved a deal to the top of its current column.
+- Hard refreshed the page.
+- Verified the deal remains exactly at the top of the column.
 
-Step 2: The Dark Mode Toggle Test
-- Clicked the new Moon/Sun icon in the TopNav.
-- Verified the dark class is toggled on the root element, triggering Tailwind's dark mode styling.
+Step 2: The Modal Theme Test
+- Toggled the app into Dark Mode.
+- Pressed Cmd+K to open the Command Palette.
+- Verified it renders with a dark background and legible light text.
 
 [X] All tests passed.

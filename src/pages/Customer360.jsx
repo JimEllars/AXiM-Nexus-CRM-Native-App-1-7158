@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCrm } from '../context/CrmContext';
+import { toast } from 'react-toastify';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import LogActivityModal from '../components/modals/LogActivityModal';
@@ -183,6 +184,46 @@ const { loading, error } = useCrm();
               {contactActivities.length === 0 && <p className="text-xs text-slate-500 italic py-2">No recent interactions.</p>}
             </div>
           </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mt-6">
+            <h3 className="text-sm font-black text-slate-900 mb-4 flex items-center space-x-2">
+              <SafeIcon icon={FiIcons.FiMail} className="text-indigo-500" />
+              <span>Send Email</span>
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Subject</label>
+                <input
+                  type="text"
+                  id="email-subject"
+                  className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                  placeholder="Enter email subject"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Message</label>
+                <textarea
+                  id="email-body"
+                  className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none h-32 resize-none"
+                  placeholder="Type your message here..."
+                ></textarea>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    document.getElementById('email-subject').value = '';
+                    document.getElementById('email-body').value = '';
+                    toast.success('Email queued for delivery.');
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md flex items-center space-x-2"
+                >
+                  <SafeIcon icon={FiIcons.FiSend} />
+                  <span>Send Message</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
 
 
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">

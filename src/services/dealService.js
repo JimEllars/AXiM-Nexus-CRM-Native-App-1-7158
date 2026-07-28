@@ -17,6 +17,16 @@ export const dealService = {
     return data;
   },
 
+
+  async updateBulk(dealsData) {
+    const { data, error } = await supabase
+      .from('deals')
+      .upsert(dealsData)
+      .select();
+    if (error) throw error;
+    return data;
+  },
+
   async update(id, dealData) {
     const { data, error } = await supabase
       .from('deals')

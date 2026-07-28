@@ -23,7 +23,7 @@ const PIPELINE_CONFIGS = {
   }
 };
 
-const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick, movingDealIds }) => {
+const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick, movingDealIds, onDragEnterDeal }) => {
   const totalValue = deals.reduce((sum, d) => sum + d.amount, 0);
 
   return (
@@ -45,8 +45,15 @@ const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick, movingDeal
       </div>
       <div className="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
         <AnimatePresence>
-          {deals.map(deal => (
-            <DealCard key={deal.id} deal={deal} onClick={() => onDealClick(deal)} isMoving={movingDealIds?.has(deal.id)} />
+          {deals.map((deal, index) => (
+            <DealCard
+               key={deal.id}
+               deal={deal}
+               index={index}
+               onClick={() => onDealClick(deal)}
+               isMoving={movingDealIds?.has(deal.id)}
+               onDragEnter={() => onDragEnterDeal(deal.id)}
+            />
           ))}
         </AnimatePresence>
         {deals.length === 0 && (
@@ -59,7 +66,7 @@ const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick, movingDeal
   );
 };
 
-const DealCard = ({ deal, onClick, isMoving }) => {
+const DealCard = ({ deal, index, onClick, isMoving, onDragEnter }) => {
   const { contacts, accounts } = useCrm();
   const contact = contacts.find(c => c.id === deal.primary_contact_id);
   const account = accounts.find(a => a.id === deal.account_id);
@@ -82,6 +89,7 @@ const DealCard = ({ deal, onClick, isMoving }) => {
       exit={{ opacity: 0, scale: 0.95 }}
       draggable
       onDragStart={handleDragStart}
+      onDragEnter={onDragEnter}
       onClick={onClick}
       className={`bg-white p-4 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing border-l-4 border-l-indigo-500 group ${isMoving ? 'pointer-events-none' : ''}`}
     >
@@ -172,6 +180,7 @@ const Pipeline = () => {
 
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id || 'all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dragOverDealId, setDragOverDealId] = useState(null);
   const [inspectedDeal, setInspectedDeal] = useState(null);
 
   const filteredDeals = useMemo(() => {
@@ -196,19 +205,58 @@ const Pipeline = () => {
     if (!dealId) return;
 
     const deal = localDeals.find(d => d.id === dealId);
-    if (!deal || deal.stage === stage) return;
+    if (!deal) return;
 
     const originalStage = deal.stage;
+    const isSameStage = originalStage === stage;
 
-    // Optimistic update
-    setLocalDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage } : d));
+    // Determine the new order array for the destination column
+    const stageDeals = [...localDeals]
+      .filter(d => d.stage === stage && d.id !== dealId)
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+    let newIndex = stageDeals.length;
+    if (dragOverDealId) {
+      const dropIndex = stageDeals.findIndex(d => d.id === dragOverDealId);
+      if (dropIndex !== -1) {
+        newIndex = dropIndex;
+      }
+    }
+
+    stageDeals.splice(newIndex, 0, { ...deal, stage });
+
+    // Update sort_order for all deals in the destination column
+    const updatedStageDeals = stageDeals.map((d, index) => ({
+      ...d,
+      sort_order: index
+    }));
+
+    // Create new local deals array with optimistic updates
+    const newLocalDeals = localDeals.map(d => {
+      const updatedDeal = updatedStageDeals.find(ud => ud.id === d.id);
+      return updatedDeal ? updatedDeal : d;
+    });
+
+    const originalDeals = [...localDeals];
+    setLocalDeals(newLocalDeals);
     setMovingDealIds(prev => new Set(prev).add(dealId));
+    setDragOverDealId(null);
 
     try {
-      await dealService.update(dealId, { stage });
+      if (isSameStage) {
+          // Bulk update just the sorting
+          const updates = updatedStageDeals.map(({ id, sort_order }) => ({ id, sort_order }));
+          await dealService.updateBulk(updates);
+      } else {
+          // It's a stage change, update stage and then sort_order of the new column
+          await dealService.update(dealId, { stage });
+          const updates = updatedStageDeals.map(({ id, sort_order }) => ({ id, sort_order }));
+          await dealService.updateBulk(updates);
+      }
+
 
       // Activity log for CLOSED_WON or CLOSED_LOST
-      if (stage === 'CLOSED_WON' || stage === 'CLOSED_LOST') {
+      if (!isSameStage && (stage === 'CLOSED_WON' || stage === 'CLOSED_LOST')) {
          if (stage === 'CLOSED_WON') {
              await activityService.logSystemActivity(`Deal ${deal.title || 'Unknown'} marked as Closed Won`);
              toast.success(`Deal ${deal.title || 'Unknown'} marked as Closed Won`);
@@ -225,7 +273,7 @@ const Pipeline = () => {
     } catch (err) {
       console.error("Failed to update deal stage:", err);
       // Revert optimistic update
-      setLocalDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage: originalStage } : d));
+      setLocalDeals(originalDeals);
       toast.error("Failed to move deal: Network Error");
     } finally {
       setMovingDealIds(prev => {
@@ -387,6 +435,7 @@ const Pipeline = () => {
                 onDragOver={handleDragOver}
                 onDealClick={setInspectedDeal}
                 movingDealIds={movingDealIds}
+                onDragEnterDeal={setDragOverDealId}
               />
             ))}
           </div>

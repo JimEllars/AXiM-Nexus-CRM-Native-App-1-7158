@@ -144,9 +144,9 @@ const CsvImportModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-800">
+          <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
             <SafeIcon icon={FiIcons.FiUploadCloud} className="text-indigo-600" />
             Import CSV
           </h2>
@@ -163,7 +163,7 @@ const CsvImportModal = ({ isOpen, onClose }) => {
           {step === 'dropzone' ? (
             <div
               className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
-                isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'
+                isDragging ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -178,21 +178,21 @@ const CsvImportModal = ({ isOpen, onClose }) => {
                 className="hidden"
               />
               <SafeIcon icon={FiIcons.FiFileText} className="text-4xl text-slate-400 mx-auto mb-4" />
-              <p className="text-slate-700 font-semibold mb-1">Click to upload or drag and drop</p>
-              <p className="text-slate-500 text-sm">CSV files only</p>
+              <p className="text-slate-700 dark:text-slate-200 font-semibold mb-1">Click to upload or drag and drop</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">CSV files only</p>
             </div>
           ) : (
             <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-              <p className="text-sm text-slate-600 mb-4">Map your CSV columns to CRM fields.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Map your CSV columns to CRM fields.</p>
               {csvData.headers.map((header, index) => (
-                <div key={index} className="flex items-center gap-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div key={index} className="flex items-center gap-4 bg-slate-50 dark:bg-slate-700 p-3 rounded-lg border border-slate-200 dark:border-slate-600">
                   <div className="flex-1 overflow-hidden">
-                    <p className="text-sm font-bold text-slate-700 truncate">{header}</p>
-                    <p className="text-xs text-slate-500 truncate">Ex: {csvData.preview[index]}</p>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{header}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Ex: {csvData.preview[index]}</p>
                   </div>
                   <div className="flex-1">
                     <select
-                      className="w-full text-sm border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white"
+                      className="w-full text-sm border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-slate-800 dark:text-white"
                       value={fieldMapping[header] || ''}
                       onChange={(e) => setFieldMapping({...fieldMapping, [header]: e.target.value})}
                       disabled={isImporting}
@@ -211,11 +211,11 @@ const CsvImportModal = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex justify-end gap-3">
           <button
             onClick={handleClose}
             disabled={isImporting}
-            className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 bg-slate-100 dark:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
