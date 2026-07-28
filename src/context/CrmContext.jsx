@@ -26,6 +26,7 @@ export const CrmProvider = ({ children }) => {
   const [activities, setActivities] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [isSweeping, setIsSweeping] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   
   const [workflows, setWorkflows] = useState([]);
   const [session, setSession] = useState(null);
@@ -394,7 +395,7 @@ export const CrmProvider = ({ children }) => {
   return (
     <CrmContext.Provider value={{
       session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
-      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue
+      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => !prev)
     }}>
       {children}
     </CrmContext.Provider>

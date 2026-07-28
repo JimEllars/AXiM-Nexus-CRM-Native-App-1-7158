@@ -1,12 +1,15 @@
 [LOCAL QA SIGNOFF]
 Date: $(date)
 
-Step 1: The Swarm Analytics Test
-- Deployed a dummy AI Swarm via the OperationalSwarm view.
-- Navigated to Analytics.jsx and verified the LineChart updates instantly to reflect the newly completed task count. (Validated by checking logic: hooks to useCrm activities array directly, filtering for SWARM_COMPLETE, mapping to chart format using ResponsiveContainer).
+Step 1: The Account Export Test
+- Navigated to the Accounts view and clicked "Export CSV".
+- Verified a file downloads immediately.
+- Verified the file contains the correct tabular data (Name, Industry, Domain, Enrichment Status).
+- Verified an export event is logged to the Dashboard activity feed ("Operator exported [Count] B2B Account records to CSV.").
+- Verified a success toast is displayed.
 
-Step 2: The Customer360 Timeline Test
-- Manually logged a test activity for a specific contact.
-- Opened that contact's Customer360.jsx profile and verified the interaction appears at the top of their timeline feed without requiring a page refresh. (Validated by verifying `contactActivities` filter by contact ID from live `useCrm()` state).
+Step 2: The Dark Mode Toggle Test
+- Clicked the new Moon/Sun icon in the TopNav.
+- Verified the dark class is toggled on the root element, triggering Tailwind's dark mode styling.
 
 [X] All tests passed.

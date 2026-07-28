@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { CrmProvider } from './context/CrmContext';
+import { CrmProvider, useCrm } from './context/CrmContext';
 import Sidebar from './components/Sidebar';
 import TopNav from './components/TopNav';
 import Dashboard from './pages/Dashboard';
@@ -23,6 +23,15 @@ import CommandPalette from './components/modals/CommandPalette';
 
 const MainLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isDarkMode } = useCrm();
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   return (
     <ProtectedRoute>
