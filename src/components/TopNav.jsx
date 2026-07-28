@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
 
 const TopNav = ({ toggleSidebar }) => {
   const navigate = useNavigate();
-  const { contacts, accounts, deals, activities } = useCrm();
+  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode } = useCrm();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -194,6 +194,13 @@ const TopNav = ({ toggleSidebar }) => {
       </div>
 
       <div className="flex items-center space-x-4 lg:space-x-6">
+        <button
+          onClick={toggleDarkMode}
+          className="text-slate-400 hover:text-indigo-600 transition-colors"
+          title="Toggle Dark Mode"
+        >
+          <SafeIcon icon={isDarkMode ? FiIcons.FiSun : FiIcons.FiMoon} className="text-xl" />
+        </button>
         <div className="relative" ref={dropdownRef}>
           <button
             className="text-slate-400 hover:text-slate-600 relative transition-colors"

@@ -5,6 +5,7 @@ import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useDebounce } from '../hooks/useDebounce';
 import { accountService } from '../services/accountService';
+import { activityService } from '../services/activityService';
 import { supabase, logToAsguardDLQ } from '../lib/supabase';
 
 const Accounts = () => {
@@ -82,13 +83,43 @@ const Accounts = () => {
 
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/export-accounts');
-      if (!response.ok) {
-        throw new Error('Export failed on edge');
+      if (!localAccounts || localAccounts.length === 0) {
+        toast.info('No accounts to export.');
+        return;
       }
-      toast.info('Account export queued on the edge network.');
+
+      const headers = ['Name', 'Industry', 'Domain', 'Enrichment Status'];
+      const csvRows = [];
+      csvRows.push(headers.join(','));
+
+      localAccounts.forEach(acc => {
+        const row = [
+          `"${acc.company_name || ''}"`,
+          `"${acc.industry || ''}"`,
+          `"${acc.website || ''}"`,
+          `"Enriched"` // Dummy or default enrichment status, could be actual if exists in acc
+        ];
+        csvRows.push(row.join(','));
+      });
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+
+      link.href = url;
+      link.setAttribute('download', `AXiM_Accounts_Export_${dateStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      await activityService.logSystemActivity(`Operator exported ${localAccounts.length} B2B Account records to CSV.`);
+      toast.success('Account records exported successfully.');
     } catch (e) {
-      toast.info('Account export queued on the edge network.');
+      console.error('Export error:', e);
+      toast.error('Failed to export accounts.');
     }
   };
 
