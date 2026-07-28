@@ -5,18 +5,38 @@ import { useCrm } from '../context/CrmContext';
 import { supabase, logToAsguardDLQ } from '../lib/supabase';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const mockSwarmTasks = [
-  { name: 'Mon', tasks: 120 },
-  { name: 'Tue', tasks: 200 },
-  { name: 'Wed', tasks: 150 },
-  { name: 'Thu', tasks: 280 },
-  { name: 'Fri', tasks: 210 },
-  { name: 'Sat', tasks: 90 },
-  { name: 'Sun', tasks: 40 },
-];
 
 const Analytics = () => {
-  const { loading, deals } = useCrm();
+
+  const { loading, deals, activities } = useCrm();
+
+  const swarmTasksData = useMemo(() => {
+    if (!activities || activities.length === 0) return [];
+
+    // Filter for SWARM_COMPLETE
+    const swarmActivities = activities.filter(a => a.type === 'SWARM_COMPLETE' || a.activity_type === 'SWARM_COMPLETE');
+
+    // Group by day using created_at
+    const grouped = swarmActivities.reduce((acc, activity) => {
+      const date = new Date(activity.created_at);
+      const dayStr = date.toLocaleDateString('en-US', { weekday: 'short' });
+      acc[dayStr] = (acc[dayStr] || 0) + 1;
+      return acc;
+    }, {});
+
+    // We want the last 7 days in order ideally, but for now we'll just sort or return what we have.
+    // Let's create a template for the last 7 days
+    const result = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayStr = d.toLocaleDateString('en-US', { weekday: 'short' });
+      result.push({ name: dayStr, tasks: grouped[dayStr] || 0 });
+    }
+
+    return result;
+  }, [activities]);
+
   const [localLoading, setLocalLoading] = useState(true);
   const [pipelineVelocity, setPipelineVelocity] = useState(null);
   const [winRate, setWinRate] = useState(null);
@@ -161,7 +181,7 @@ const Analytics = () => {
           <h3 className="text-slate-200 font-bold mb-4">AI Swarm Tasks Completed</h3>
           <div className="flex-1 w-full h-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockSwarmTasks}>
+              <LineChart data={swarmTasksData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                 <XAxis dataKey="name" stroke="#94a3b8" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                 <YAxis stroke="#94a3b8" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
