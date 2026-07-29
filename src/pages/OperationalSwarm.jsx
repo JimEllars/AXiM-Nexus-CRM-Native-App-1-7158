@@ -8,13 +8,13 @@ import { activityService } from '../services/activityService';
 import { swarmService } from '../services/swarmService';
 
 const OperationalSwarm = () => {
-  const [delegationForm, setDelegationForm] = React.useState({ agent: '', context: '' });
+  const [delegationForm, setDelegationForm] = React.useState({ agents: [], context: '' });
   const [isDeploying, setIsDeploying] = React.useState(false);
   const [deployFailed, setDeployFailed] = React.useState(false);
 
   const handleDeploySwarm = async (e) => {
     e.preventDefault();
-    if (!delegationForm.agent || !delegationForm.context) {
+    if (delegationForm.agents.join(", ")s.length === 0 || !delegationForm.context) {
        toast.error('Please complete all delegation fields.');
        return;
     }
@@ -26,21 +26,21 @@ const OperationalSwarm = () => {
 
     try {
       await swarmService.deploySwarmAgent(
-        delegationForm.agent,
+        delegationForm.agents.join(", ")s,
         delegationForm.context,
         controller.signal
       );
       clearTimeout(timeoutId);
 
-      await activityService.logSystemActivity(`AI Swarm deployed: ${delegationForm.agent}. Context: ${delegationForm.context.substring(0, 50)}...`);
+      await activityService.logSystemActivity(`AI Swarm deployed: ${delegationForm.agents.join(", ")}. Context: ${delegationForm.context.substring(0, 50)}...`);
 
-      toast.success(`AI Swarm '${delegationForm.agent}' deployed to edge worker.`);
-      setDelegationForm({ agent: '', context: '' });
+      toast.success(`AI Swarm '${delegationForm.agents.join(", ")}' deployed to edge worker.`);
+      setDelegationForm({ agents: [], context: '' });
       setDeployFailed(false);
     } catch (err) {
       clearTimeout(timeoutId);
       if (err.name === 'AbortError') {
-        activityService.logSystemActivity(`ERROR: AI Swarm initialization timed out at the edge. Agent: ${delegationForm.agent}`).catch(console.error);
+        activityService.logSystemActivity(`ERROR: AI Swarm initialization timed out at the edge. Agent: ${delegationForm.agents.join(", ")}`).catch(console.error);
         toast.error('AI Swarm initialization timed out at the edge. Please retry.');
         setDeployFailed(true);
       } else {
@@ -184,21 +184,15 @@ const OperationalSwarm = () => {
             </h4>
             <form onSubmit={handleDeploySwarm} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Select Target AI Agent</label>
-                <select
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                  value={delegationForm.agent}
-                  onChange={(e) => {
-                    setDelegationForm({...delegationForm, agent: e.target.value});
-                    setDeployFailed(false);
-                  }}
-                  disabled={isDeploying}
-                >
-                  <option value="">-- Select an Agent --</option>
-                  <option value="Lead Qualifier AI">Lead Qualifier AI</option>
-                  <option value="Retention AI">Retention AI</option>
-                  <option value="Billing AI">Billing AI</option>
-                </select>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Select Target AI Agents</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {["Lead Qualifier AI", "Retention AI", "Billing AI", "Support Triage AI"].map(agent => (
+                    <label key={agent} className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-all ${delegationForm.agents.includes(agent) ? "bg-indigo-50 border-indigo-200" : "bg-white border-slate-200 hover:border-indigo-100"}`}>
+                      <input type="checkbox" className="form-checkbox h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" checked={delegationForm.agents.includes(agent)} onChange={(e) => { const currentAgents = [...delegationForm.agents]; if (e.target.checked) { currentAgents.push(agent); } else { const index = currentAgents.indexOf(agent); if (index > -1) currentAgents.splice(index, 1); } setDelegationForm({ ...delegationForm, agents: currentAgents }); setDeployFailed(false); }} disabled={isDeploying} />
+                      <span className={`text-sm font-bold ${delegationForm.agents.includes(agent) ? "text-indigo-900" : "text-slate-600"}`}>{agent}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Delegation Context</label>

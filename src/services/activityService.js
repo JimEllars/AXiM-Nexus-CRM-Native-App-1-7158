@@ -22,13 +22,14 @@ export const activityService = {
   },
 
 
-  async logSystemActivity(message) {
+  async logSystemActivity(message, type = 'SYSTEM_EVENT', extraFields = {}) {
     const { data, error } = await supabase
       .from('activities')
       .insert([{
-        type: 'SYSTEM_EVENT',
+        type: type,
         description: message,
-        logged_by_agent_id: 'system'
+        logged_by_agent_id: 'system',
+        ...extraFields
       }])
       .select()
       .single();

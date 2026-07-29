@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { emailService } from '../services/emailService';
 import { useCrm } from '../context/CrmContext';
 import { toast } from 'react-toastify';
 import SafeIcon from '../common/SafeIcon';
@@ -21,9 +22,10 @@ const ActivityIcon = ({ type }) => {
 const Customer360 = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { contacts, accounts, activities, deals } = useCrm();
+  const { contacts, accounts, activities, deals, logSystemActivity } = useCrm();
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [filterType, setFilterType] = useState('All');
+  const [isSending, setIsSending] = useState(false);
 
 const { loading, error } = useCrm();
 
@@ -210,15 +212,40 @@ const { loading, error } = useCrm();
               </div>
               <div className="flex justify-end">
                 <button
-                  onClick={() => {
-                    document.getElementById('email-subject').value = '';
-                    document.getElementById('email-body').value = '';
-                    toast.success('Email queued for delivery.');
+                  onClick={async () => {
+                    const subjectInput = document.getElementById('email-subject');
+                    const bodyInput = document.getElementById('email-body');
+                    const subject = subjectInput.value;
+                    const body = bodyInput.value;
+
+                    if (!subject || !body) {
+                      toast.error('Subject and message are required.');
+                      return;
+                    }
+
+                    setIsSending(true);
+                    try {
+                      await emailService.sendTransactionalEmail(id, subject, body);
+                      await logSystemActivity(
+                        `Operator sent email to ${contact.first_name} ${contact.last_name}. Subject: ${subject}`,
+                        'EMAIL_SENT',
+                        { contact_id: id, entity_id: id }
+                      );
+                      subjectInput.value = '';
+                      bodyInput.value = '';
+                      toast.success('Email dispatched to Edge Network successfully.');
+                    } catch (err) {
+                      console.error(err);
+                      toast.error('Failed to send email. Check connection.');
+                    } finally {
+                      setIsSending(false);
+                    }
                   }}
+                  disabled={isSending}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md flex items-center space-x-2 ${isSending ? 'bg-indigo-400 text-white cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md flex items-center space-x-2"
                 >
-                  <SafeIcon icon={FiIcons.FiSend} />
-                  <span>Send Message</span>
+                  <SafeIcon icon={FiIcons.FiSend} /><span>Send Message</span>
                 </button>
               </div>
             </div>
