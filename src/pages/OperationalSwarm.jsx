@@ -14,7 +14,7 @@ const OperationalSwarm = () => {
 
   const handleDeploySwarm = async (e) => {
     e.preventDefault();
-    if (delegationForm.agents.join(", ")s.length === 0 || !delegationForm.context) {
+    if (delegationForm.agents.length === 0 || !delegationForm.context) {
        toast.error('Please complete all delegation fields.');
        return;
     }
@@ -26,7 +26,7 @@ const OperationalSwarm = () => {
 
     try {
       await swarmService.deploySwarmAgent(
-        delegationForm.agents.join(", ")s,
+        delegationForm.agents.join(", "),
         delegationForm.context,
         controller.signal
       );

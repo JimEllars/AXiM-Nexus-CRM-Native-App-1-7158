@@ -21,6 +21,26 @@ const ActivityIcon = ({ type }) => {
 
 const Customer360 = () => {
   const { id } = useParams();
+
+  const handleFormat = (formatType) => {
+    const textarea = document.getElementById('email-body');
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    let inserted = '';
+    if (formatType === 'bold') inserted = '**bold**';
+    if (formatType === 'italic') inserted = '*italic*';
+    if (formatType === 'list') inserted = '\n- list item';
+    if (formatType === 'link') inserted = '[link](url)';
+
+    const newText = text.substring(0, start) + inserted + text.substring(end);
+    textarea.value = newText;
+    // restore focus and cursor
+    textarea.focus();
+    textarea.setSelectionRange(start, start + inserted.length);
+  };
   const navigate = useNavigate();
   const { contacts, accounts, activities, deals, logSystemActivity } = useCrm();
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -204,6 +224,21 @@ const { loading, error } = useCrm();
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Message</label>
+
+                <div className="flex items-center space-x-1 mb-2 bg-slate-50 border border-slate-200 rounded-lg p-1 w-fit sticky top-0 z-10">
+                  <button onClick={() => handleFormat('bold')} className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded transition-colors" title="Bold">
+                     <span className="font-bold font-serif px-1">B</span>
+                  </button>
+                  <button onClick={() => handleFormat('italic')} className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded transition-colors" title="Italic">
+                     <span className="italic font-serif px-1">I</span>
+                  </button>
+                  <button onClick={() => handleFormat('list')} className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded transition-colors" title="Bullet List">
+                     <SafeIcon icon={FiIcons.FiList} />
+                  </button>
+                  <button onClick={() => handleFormat('link')} className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded transition-colors" title="Link">
+                     <SafeIcon icon={FiIcons.FiLink} />
+                  </button>
+                </div>
                 <textarea
                   id="email-body"
                   className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none h-32 resize-none"
@@ -243,7 +278,6 @@ const { loading, error } = useCrm();
                   }}
                   disabled={isSending}
                   className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md flex items-center space-x-2 ${isSending ? 'bg-indigo-400 text-white cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md flex items-center space-x-2"
                 >
                   <SafeIcon icon={FiIcons.FiSend} /><span>Send Message</span>
                 </button>
