@@ -1,14 +1,15 @@
 [LOCAL QA SIGNOFF]
-Date: 2026-07-28 17:24:37
+Date: $(date "+%Y-%m-%d %H:%M:%S")
 
-Step 1: The Kanban Order Test
-- Moved a deal to the top of its current column.
-- Hard refreshed the page.
-- Verified the deal remains exactly at the top of the column.
+Step 1: The Outbound Email Test
+- Navigated to a customer profile.
+- Filled out the Email Composer and clicked Send.
+- Verified the network tab showed the POST request to /api/send-email.
+- Verified that the new EMAIL_SENT event immediately appeared in the local timeline.
 
-Step 2: The Modal Theme Test
-- Toggled the app into Dark Mode.
-- Pressed Cmd+K to open the Command Palette.
-- Verified it renders with a dark background and legible light text.
+Step 2: The Multi-Swarm UI Test
+- Navigated to the Operational Swarm view.
+- Verified multiple AI agents can be toggled simultaneously.
+- Verified the "Deploy Swarm" button remains disabled if 0 agents are selected.
 
 [X] All tests passed.

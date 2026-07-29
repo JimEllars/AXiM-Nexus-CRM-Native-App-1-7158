@@ -245,6 +245,13 @@ export const CrmProvider = ({ children }) => {
     } catch (e) { console.error(e); }
   };
 
+  const logSystemActivity = async (message, type = "SYSTEM_EVENT", extraFields = {}) => {
+    try {
+      const newActivity = await activityService.logSystemActivity(message, type, extraFields);
+      setActivities(prev => [newActivity, ...prev]);
+    } catch (e) { console.error(e); }
+  };
+
   const addActivity = async (activityData) => {
     try {
       const newActivity = await activityService.create(activityData);
@@ -395,7 +402,7 @@ export const CrmProvider = ({ children }) => {
   return (
     <CrmContext.Provider value={{
       session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
-      addDeal, updateDeal, addActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => !prev)
+      addDeal, updateDeal, addActivity, logSystemActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => !prev)
     }}>
       {children}
     </CrmContext.Provider>
