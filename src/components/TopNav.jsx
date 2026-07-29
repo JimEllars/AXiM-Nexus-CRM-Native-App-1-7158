@@ -1,3 +1,4 @@
+import TaskDrawer from "./modals/TaskDrawer";
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCrm } from '../context/CrmContext';
@@ -7,6 +8,7 @@ import * as FiIcons from 'react-icons/fi';
 import { supabase } from '../lib/supabase';
 
 const TopNav = ({ toggleSidebar }) => {
+  const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode } = useCrm();
   const [searchTerm, setSearchTerm] = useState('');
@@ -138,6 +140,7 @@ const TopNav = ({ toggleSidebar }) => {
   }, []);
 
   return (
+    <>
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-10 w-full flex-shrink-0">
       <div className="flex items-center space-x-4 flex-1">
         <button
@@ -201,6 +204,13 @@ const TopNav = ({ toggleSidebar }) => {
         >
           <SafeIcon icon={isDarkMode ? FiIcons.FiSun : FiIcons.FiMoon} className="text-xl" />
         </button>
+        <button
+          onClick={() => setIsTaskDrawerOpen(true)}
+          className="text-slate-400 hover:text-indigo-600 transition-colors"
+          title="Open Task Drawer"
+        >
+          <SafeIcon icon={FiIcons.FiCheckSquare} className="text-xl" />
+        </button>
         <div className="relative" ref={dropdownRef}>
           <button
             className="text-slate-400 hover:text-slate-600 relative transition-colors"
@@ -258,6 +268,8 @@ const TopNav = ({ toggleSidebar }) => {
         </div>
       </div>
     </header>
+      <TaskDrawer isOpen={isTaskDrawerOpen} onClose={() => setIsTaskDrawerOpen(false)} />
+    </>
   );
 };
 
