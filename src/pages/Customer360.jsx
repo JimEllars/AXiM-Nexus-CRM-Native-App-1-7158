@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { parseMarkdown } from '../utils/formatters.jsx';
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { emailService } from '../services/emailService';
 import { useCrm } from '../context/CrmContext';
@@ -200,7 +202,7 @@ const { loading, error } = useCrm();
                   </div>
                   <div className="text-xs font-bold text-slate-800 mb-1">{type.replace('_', ' ')}</div>
                   <div className="text-[10px] text-slate-400 mb-2 font-mono">{new Date(activity.created_at).toLocaleString()}</div>
-                  <p className="text-xs text-slate-600 leading-relaxed truncate">{description}</p>
+                  <p className="text-xs text-slate-600 leading-relaxed truncate">{type === 'EMAIL_SENT' ? parseMarkdown(description) : description}</p>
                 </div>
               )})}
               {contactActivities.length === 0 && <p className="text-xs text-slate-500 italic py-2">No recent interactions.</p>}
@@ -226,6 +228,29 @@ const { loading, error } = useCrm();
                 <label className="block text-xs font-bold text-slate-700 mb-1">Message</label>
 
                 <div className="flex items-center space-x-1 mb-2 bg-slate-50 border border-slate-200 rounded-lg p-1 w-fit sticky top-0 z-10">
+                  <select
+                    className="mr-2 p-1 text-xs text-slate-600 bg-white border border-slate-200 rounded focus:outline-none focus:border-indigo-500"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const textarea = document.getElementById('email-body');
+                      if (!textarea) return;
+                      let template = '';
+                      if (val === 'intro') {
+                        template = 'Hi there,\n\nI wanted to reach out regarding **[Topic]**.\n\nPlease let me know when you have time to chat.\n\nThanks!';
+                      } else if (val === 'followup') {
+                        template = 'Hello again,\n\nJust following up on my previous message.\n\n*Best regards,*';
+                      }
+                      if (template) {
+                        textarea.value = (textarea.value ? textarea.value + '\n\n' : '') + template;
+                      }
+                      e.target.value = ''; // reset
+                    }}
+                  >
+                    <option value="">Templates</option>
+                    <option value="intro">Intro Outreach</option>
+                    <option value="followup">Follow Up</option>
+                  </select>
+                  <div className="w-px h-4 bg-slate-300 mx-1"></div>
                   <button onClick={() => handleFormat('bold')} className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded transition-colors" title="Bold">
                      <span className="font-bold font-serif px-1">B</span>
                   </button>
@@ -375,7 +400,7 @@ const { loading, error } = useCrm();
                           <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded self-start sm:self-auto">Verified Admin</span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-700 leading-relaxed font-medium">{description}</p>
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium">{type === 'EMAIL_SENT' ? parseMarkdown(description) : description}</p>
                       {activity.metadata && Object.keys(activity.metadata).length > 0 && (
                         <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {Object.entries(activity.metadata).map(([key, val]) => (

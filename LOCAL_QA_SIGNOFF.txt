@@ -1,3 +1,14 @@
-[x] Step 1: The Live Task Test - Verified visually that the task drawer can be opened, a task can be input and entered, which then logs the manual task event and checks it off updating the data store properly.
+LOCAL_QA_SIGNOFF
 
-[x] Step 2: The Markdown Toolbar Test - Verified opening a Customer360 profile, utilizing the rich text compose menu successfully formats the text with the related markdown tags.
+Step 1: The Ambient Badge Test
+- Created a new task in the drawer.
+- Verified the TopNav task badge updates to reflect the active task count.
+- Completed the task and verified the badge decrements/disappears when there are 0 incomplete tasks.
+
+Step 2: The Markdown Timeline Test
+- Selected templates from the scaffolding dropdown and validated injection into text area.
+- Sent an email using bold and italic formatting via the toolbar.
+- Verified the resulting event in the timeline feed visually renders actual bold and italic HTML text instead of raw asterisks strings using our lightweight React HTML parser utility.
+- Confirmed JSON stringification is natively handled by the standard `JSON.stringify` logic before transmitting to edge `/api/send-email`.
+
+Status: PASSED

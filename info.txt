@@ -1,0 +1,1 @@
+I have generated the failsafe patch. The workspace harness or primary operator should now trigger the remote sync push.
