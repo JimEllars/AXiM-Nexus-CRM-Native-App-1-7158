@@ -10,7 +10,8 @@ import { supabase } from '../lib/supabase';
 const TopNav = ({ toggleSidebar }) => {
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode } = useCrm();
+  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks } = useCrm();
+  const incompleteTasksCount = (tasks || []).filter(t => t.status !== 'DONE').length;
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -206,10 +207,15 @@ const TopNav = ({ toggleSidebar }) => {
         </button>
         <button
           onClick={() => setIsTaskDrawerOpen(true)}
-          className="text-slate-400 hover:text-indigo-600 transition-colors"
+          className="text-slate-400 hover:text-indigo-600 transition-colors relative"
           title="Open Task Drawer"
         >
           <SafeIcon icon={FiIcons.FiCheckSquare} className="text-xl" />
+          {incompleteTasksCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-500 rounded-full border-2 border-white text-[9px] font-bold text-white flex items-center justify-center shadow-sm">
+              {incompleteTasksCount > 9 ? '9+' : incompleteTasksCount}
+            </span>
+          )}
         </button>
         <div className="relative" ref={dropdownRef}>
           <button
