@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase';
 
 const TopNav = ({ toggleSidebar }) => {
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
+  const [isAgentDrawerOpen, setIsAgentDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks } = useCrm();
   const incompleteTasksCount = (tasks || []).filter(t => t.status !== 'DONE').length;
@@ -263,7 +264,7 @@ const TopNav = ({ toggleSidebar }) => {
             </div>
           )}
         </div>
-        <div className="flex items-center space-x-3 pl-4 lg:pl-6 border-l border-slate-200 cursor-pointer group">
+        <div className="flex items-center space-x-3 pl-4 lg:pl-6 border-l border-slate-200 cursor-pointer group" onClick={() => setIsAgentDrawerOpen(true)}>
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">Internal Admin</p>
             <p className="text-xs text-slate-500 font-mono">axim_internal_admin</p>
@@ -275,6 +276,7 @@ const TopNav = ({ toggleSidebar }) => {
       </div>
     </header>
       <TaskDrawer isOpen={isTaskDrawerOpen} onClose={() => setIsTaskDrawerOpen(false)} />
+      <AgentProfileDrawer isOpen={isAgentDrawerOpen} onClose={() => setIsAgentDrawerOpen(false)} />
     </>
   );
 };

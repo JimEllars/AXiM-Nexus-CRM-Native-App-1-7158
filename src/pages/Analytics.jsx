@@ -160,7 +160,7 @@ const Analytics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm flex flex-col h-96">
           <h3 className="text-slate-200 font-bold mb-4">Pipeline Velocity</h3>
-          <div className="flex-1 w-full h-full">
+          <div className="flex-1 w-full h-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={pipelineVelocityData.length > 0 ? pipelineVelocityData : [{ name: 'No Data', value: 0 }]}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
@@ -179,7 +179,7 @@ const Analytics = () => {
 
         <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm flex flex-col h-96">
           <h3 className="text-slate-200 font-bold mb-4">AI Swarm Tasks Completed</h3>
-          <div className="flex-1 w-full h-full">
+          <div className="flex-1 w-full h-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={swarmTasksData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
