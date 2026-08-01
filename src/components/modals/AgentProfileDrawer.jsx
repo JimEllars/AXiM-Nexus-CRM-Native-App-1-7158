@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useCrm } from '../../context/CrmContext';
 import * as FiIcons from 'react-icons/fi';
 
 const SafeIcon = ({ icon: Icon, className }) => {
@@ -7,7 +8,8 @@ const SafeIcon = ({ icon: Icon, className }) => {
 };
 
 const AgentProfileDrawer = ({ isOpen, onClose }) => {
-  const [isOnline, setIsOnline] = useState(true);
+  const { isUserOnline, setIsUserOnline, presenceChannel, session } = useCrm();
+
 
   if (!isOpen) return null;
 
@@ -40,13 +42,23 @@ const AgentProfileDrawer = ({ isOpen, onClose }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Presence Status</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{`${isOnline ? 'Online' : 'Offline'}`}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{`${isUserOnline ? 'Online' : 'Offline'}`}</p>
               </div>
               <button
-                onClick={() => setIsOnline(!isOnline)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isOnline ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                onClick={async () => {
+                  const newState = !isUserOnline;
+                  setIsUserOnline(newState);
+                  if (presenceChannel) {
+                    await presenceChannel.track({
+                      user_id: session?.user?.id || 'anonymous',
+                      online_at: new Date().toISOString(),
+                      status: newState ? 'online' : 'offline',
+                    });
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isUserOnline ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}
               >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isOnline ? 'translate-x-6' : 'translate-x-1'}`} />
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isUserOnline ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
           </div>

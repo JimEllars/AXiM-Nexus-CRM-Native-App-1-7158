@@ -33,6 +33,8 @@ export const CrmProvider = ({ children }) => {
   const [authLoading, setAuthLoading] = useState(true);
   const [realtimeStatus, setRealtimeStatus] = useState('connected');
   const [enrichmentQueue, setEnrichmentQueue] = useState(enrichmentService.getQueue());
+  const [isUserOnline, setIsUserOnline] = useState(true);
+  const [presenceChannel, setPresenceChannel] = useState(null);
 
   useEffect(() => {
     const handleQueueUpdate = () => {
@@ -142,6 +144,24 @@ export const CrmProvider = ({ children }) => {
     }, 30000); // Poll every 30 seconds for background refresh
 
     // Supabase Realtime Prep: Subscription for crm.deals table
+    const presChannel = supabase.channel('online-users');
+    setPresenceChannel(presChannel);
+
+    presChannel
+      .on('presence', { event: 'sync' }, () => {
+        const newState = presChannel.presenceState();
+        // Custom logic to handle presence updates can go here
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presChannel.track({
+            user_id: session?.user?.id || 'anonymous',
+            online_at: new Date().toISOString(),
+            status: 'online',
+          })
+        }
+      });
+
     const broadcastChannel = supabase.channel('enrichment-events')
       .on('broadcast', { event: 'enrichment_completed' }, (payload) => {
         toast.success("Ecosystem Scraper completed a record sync");
@@ -222,6 +242,7 @@ export const CrmProvider = ({ children }) => {
     return () => {
       clearInterval(intervalId);
       supabase.removeChannel(channel);
+      supabase.removeChannel(presChannel);
       supabase.removeChannel(broadcastChannel);
     };
   }, [session]);
@@ -402,7 +423,7 @@ export const CrmProvider = ({ children }) => {
   return (
     <CrmContext.Provider value={{
       session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
-      addDeal, updateDeal, addActivity, logSystemActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => !prev)
+      addDeal, updateDeal, addActivity, logSystemActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => !prev), isUserOnline, setIsUserOnline, presenceChannel
     }}>
       {children}
     </CrmContext.Provider>
