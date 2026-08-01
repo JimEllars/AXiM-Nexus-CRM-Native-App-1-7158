@@ -121,13 +121,15 @@ const DealCard = ({ deal, index, onClick, isMoving, onDragEnter }) => {
 const Pipeline = () => {
   const { deals, moveDealStage, campaigns, loading, error, realtimeStatus, session } = useCrm();
   const [localDeals, setLocalDeals] = useState(deals);
+  const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com'; // rudimentary admin check
+
   const [pipelineType, setPipelineType] = useState('b2b');
   const [movingDealIds, setMovingDealIds] = useState(new Set());
   const [isSwitchingType, setIsSwitchingType] = useState(false);
 
   useEffect(() => {
     if (!isSwitchingType) {
-      setLocalDeals(deals);
+      setLocalDeals(isAdmin ? deals : deals.filter(d => d.assigned_to === session?.user?.id));
     }
   }, [deals, isSwitchingType]);
 
@@ -143,12 +145,19 @@ const Pipeline = () => {
         },
         (payload) => {
           console.log('Realtime Deals update received in Pipeline:', payload);
-          setLocalDeals(prev => prev.map(deal => {
-            if (deal.id === payload.new.id) {
-              return { ...deal, ...payload.new };
+          setLocalDeals(prev => {
+            const isAssigned = isAdmin || payload.new.assigned_to === session?.user?.id;
+            const exists = prev.some(d => d.id === payload.new.id);
+            if (isAssigned) {
+              if (exists) {
+                return prev.map(deal => deal.id === payload.new.id ? { ...deal, ...payload.new } : deal);
+              } else {
+                return [...prev, payload.new];
+              }
+            } else {
+              return prev.filter(d => d.id !== payload.new.id);
             }
-            return deal;
-          }));
+          });
         }
       )
       .on('system', { event: 'phx_reply' }, (payload) => {

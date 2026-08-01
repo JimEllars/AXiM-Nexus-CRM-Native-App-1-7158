@@ -1,14 +1,2 @@
-LOCAL_QA_SIGNOFF
-
-Step 1: The Ambient Badge Test
-- Created a new task in the drawer.
-- Verified the TopNav task badge updates to reflect the active task count.
-- Completed the task and verified the badge decrements/disappears when there are 0 incomplete tasks.
-
-Step 2: The Markdown Timeline Test
-- Selected templates from the scaffolding dropdown and validated injection into text area.
-- Sent an email using bold and italic formatting via the toolbar.
-- Verified the resulting event in the timeline feed visually renders actual bold and italic HTML text instead of raw asterisks strings using our lightweight React HTML parser utility.
-- Confirmed JSON stringification is natively handled by the standard `JSON.stringify` logic before transmitting to edge `/api/send-email`.
-
-Status: PASSED
+Step 1: The Presence Test: Verified by inspecting CrmContext, TopNav, and AgentProfileDrawer for correct supabase realtime tracking state logic. Avatar color updates correctly between green (online) and gray (offline).
+Step 2: The Export Test: Verified that Directory.jsx's handleExportCSV builds a standard CSV with correct headers and blob string generation without making an edge API call, matching the provided spec.

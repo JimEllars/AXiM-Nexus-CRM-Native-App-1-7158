@@ -11,7 +11,7 @@ const TopNav = ({ toggleSidebar }) => {
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const [isAgentDrawerOpen, setIsAgentDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks } = useCrm();
+  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks, isUserOnline } = useCrm();
   const incompleteTasksCount = (tasks || []).filter(t => t.status !== 'DONE').length;
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -269,8 +269,11 @@ const TopNav = ({ toggleSidebar }) => {
             <p className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">Internal Admin</p>
             <p className="text-xs text-slate-500 font-mono">axim_internal_admin</p>
           </div>
-          <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center border border-indigo-100 text-indigo-700 font-bold shadow-sm group-hover:bg-indigo-100 transition-colors">
-            AD
+          <div className="relative">
+            <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center border border-indigo-100 text-indigo-700 font-bold shadow-sm group-hover:bg-indigo-100 transition-colors">
+              AD
+            </div>
+            <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${isUserOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
           </div>
         </div>
       </div>

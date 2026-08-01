@@ -82,20 +82,45 @@ const Directory = () => {
     }
   };
 
-  const handleExportCSV = async () => {
+  const handleExportCSV = () => {
     try {
-      const response = await fetch('/api/export-contacts', {
-        method: 'GET',
-      });
-      if (!response.ok) {
-        if (response.status === 404) {
-          toast.info('Export queued on the edge network.');
-        } else {
-          toast.error('Failed to export contacts.');
-        }
+      if (!localContacts || localContacts.length === 0) {
+        toast.info('No contacts to export.');
+        return;
       }
+
+      const headers = ['First Name', 'Last Name', 'Email', 'Phone', 'Type', 'Status'];
+      const csvRows = [headers.join(',')];
+
+      for (const contact of localContacts) {
+        const values = [
+          `"${contact.first_name || ''}"`,
+          `"${contact.last_name || ''}"`,
+          `"${contact.email || ''}"`,
+          `"${contact.phone || ''}"`,
+          `"${contact.type || ''}"`,
+          `"${contact.enrichment_status || 'PENDING'}"`
+        ];
+        csvRows.push(values.join(','));
+      }
+
+      const csvString = csvRows.join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.setAttribute('download', `axim_contacts_export_${dateStr}.csv`);
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Contacts exported successfully.');
     } catch (error) {
-      toast.info('Export queued on the edge network.');
+      toast.error('Failed to generate CSV export.');
     }
   };
 
@@ -104,7 +129,7 @@ const Directory = () => {
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        const data = await contactService.getAll(0, debouncedSearchTerm, sortConfig);
+        const data = await contactService.getAll(0, debouncedSearchTerm, sortConfig, statusFilter);
         setLocalContacts(data);
         setOffset(0);
         setHasMore(data.length === 50);
@@ -113,12 +138,12 @@ const Directory = () => {
       }
     };
     fetchContacts();
-  }, [debouncedSearchTerm, sortConfig]);
+  }, [debouncedSearchTerm, sortConfig, statusFilter]);
 
   const loadMore = async () => {
     try {
       const nextOffset = offset + 50;
-      const data = await contactService.getAll(nextOffset, debouncedSearchTerm, sortConfig);
+      const data = await contactService.getAll(nextOffset, debouncedSearchTerm, sortConfig, statusFilter);
       setLocalContacts(prev => [...prev, ...data]);
       setOffset(nextOffset);
       setHasMore(data.length === 50);
@@ -300,21 +325,15 @@ const Directory = () => {
                   className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                   onChange={(e) => {
                     if (e.target.checked) {
-                      const visibleContacts = localContacts.filter(c => {
-                      if (statusFilter === 'All') return true;
-                      if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED';
-                      if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status;
-                      return true;
-                    });
-                    const allIds = visibleContacts.map(c => c.id);
+                      const allIds = localContacts.map(c => c.id);
                       // Merge with existing but remove duplicates using Set
                       setSelectedIds(Array.from(new Set([...selectedIds, ...allIds])));
                     } else {
-                      const visibleContactsElse = localContacts.filter(c => { if (statusFilter === 'All') return true; if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED'; if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status; return true; }); const visibleIds = visibleContactsElse.map(c => c.id);
+                      const visibleIds = localContacts.map(c => c.id);
                       setSelectedIds(selectedIds.filter(id => !visibleIds.includes(id)));
                     }
                   }}
-                  checked={localContacts.filter(c => { if (statusFilter === 'All') return true; if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED'; if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status; return true; }).length > 0 && localContacts.filter(c => { if (statusFilter === 'All') return true; if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED'; if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status; return true; }).every(c => selectedIds.includes(c.id))}
+                  checked={localContacts.length > 0 && localContacts.every(c => selectedIds.includes(c.id))}
                 />
               </th>
               <th className="p-4">Name / Entity</th>
@@ -324,12 +343,7 @@ const Directory = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {localContacts.filter(c => {
-                    if (statusFilter === 'All') return true;
-                    if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED';
-                    if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status;
-                    return true;
-                  }).map(contact => {
+            {localContacts.map(contact => {
               const account = accounts.find(a => a.id === contact.account_id);
               return (
                 <tr key={contact.id} className="hover:bg-slate-50 transition-colors group">
