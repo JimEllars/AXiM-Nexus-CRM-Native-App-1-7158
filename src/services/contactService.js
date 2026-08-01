@@ -41,21 +41,13 @@ export const contactService = {
     return data;
   },
 
-  async bulkImportContacts(mappedData) {
-    const chunkSize = 500;
-    const results = [];
+  async bulkImportContacts(chunk) {
+    const { data, error } = await supabase
+      .from('contacts')
+      .insert(chunk)
+      .select();
 
-    for (let i = 0; i < mappedData.length; i += chunkSize) {
-      const chunk = mappedData.slice(i, i + chunkSize);
-      const { data, error } = await supabase
-        .from('contacts')
-        .insert(chunk)
-        .select();
-
-      if (error) throw error;
-      if (data) results.push(...data);
-    }
-
-    return results;
+    if (error) throw error;
+    return data || [];
   }
 };

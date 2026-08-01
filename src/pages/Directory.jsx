@@ -21,6 +21,7 @@ const Directory = () => {
   const [isCsvImportModalOpen, setIsCsvImportModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('All');
 
   const [localContacts, setLocalContacts] = useState([]);
   const [offset, setOffset] = useState(0);
@@ -158,6 +159,16 @@ const Directory = () => {
             <option value="first_name-true">Sort by: Name (A-Z)</option>
             <option value="first_name-false">Sort by: Name (Z-A)</option>
           </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 font-bold shrink-0"
+          >
+            <option value="All">Filter by Status: All</option>
+            <option value="Enriched">Filter by Status: Enriched</option>
+            <option value="Pending">Filter by Status: Pending</option>
+          </select>
+
 
           {selectedIds.length > 0 && (
             <button
@@ -289,15 +300,21 @@ const Directory = () => {
                   className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                   onChange={(e) => {
                     if (e.target.checked) {
-                      const allIds = localContacts.map(c => c.id);
+                      const visibleContacts = localContacts.filter(c => {
+                      if (statusFilter === 'All') return true;
+                      if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED';
+                      if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status;
+                      return true;
+                    });
+                    const allIds = visibleContacts.map(c => c.id);
                       // Merge with existing but remove duplicates using Set
                       setSelectedIds(Array.from(new Set([...selectedIds, ...allIds])));
                     } else {
-                      const visibleIds = localContacts.map(c => c.id);
+                      const visibleContactsElse = localContacts.filter(c => { if (statusFilter === 'All') return true; if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED'; if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status; return true; }); const visibleIds = visibleContactsElse.map(c => c.id);
                       setSelectedIds(selectedIds.filter(id => !visibleIds.includes(id)));
                     }
                   }}
-                  checked={localContacts.length > 0 && localContacts.every(c => selectedIds.includes(c.id))}
+                  checked={localContacts.filter(c => { if (statusFilter === 'All') return true; if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED'; if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status; return true; }).length > 0 && localContacts.filter(c => { if (statusFilter === 'All') return true; if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED'; if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status; return true; }).every(c => selectedIds.includes(c.id))}
                 />
               </th>
               <th className="p-4">Name / Entity</th>
@@ -307,7 +324,12 @@ const Directory = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {localContacts.map(contact => {
+            {localContacts.filter(c => {
+                    if (statusFilter === 'All') return true;
+                    if (statusFilter === 'Enriched') return c.enrichment_status === 'ENRICHED';
+                    if (statusFilter === 'Pending') return c.enrichment_status === 'PENDING' || !c.enrichment_status;
+                    return true;
+                  }).map(contact => {
               const account = accounts.find(a => a.id === contact.account_id);
               return (
                 <tr key={contact.id} className="hover:bg-slate-50 transition-colors group">

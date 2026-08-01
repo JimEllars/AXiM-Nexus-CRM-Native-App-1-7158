@@ -124,8 +124,18 @@ const CsvImportModal = ({ isOpen, onClose }) => {
         return;
       }
 
-      await contactService.bulkImportContacts(mappedContacts);
-      await activityService.logSystemActivity(`Operator bulk imported ${mappedContacts.length} contact records via CSV.`);
+      const chunkSize = 50;
+      let importedCount = 0;
+      const total = mappedContacts.length;
+
+      for (let i = 0; i < total; i += chunkSize) {
+        const chunk = mappedContacts.slice(i, i + chunkSize);
+        await contactService.bulkImportContacts(chunk);
+        importedCount += chunk.length;
+        toast.info(`Imported ${importedCount} / ${total} records...`);
+      }
+
+      await activityService.logSystemActivity(`Operator bulk imported ${total} contact records via CSV.`);
 
       toast.success('Import completed successfully.');
 
