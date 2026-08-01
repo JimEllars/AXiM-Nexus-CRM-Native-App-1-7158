@@ -1,0 +1,24 @@
+1. System-Wide Notification Standardization (UI Polish & Resiliency)
+   - Create `src/services/notificationService.js` that exports `notifySuccess`, `notifyError`, `notifyWarning`, and `notifyInfo` wrapping `react-toastify`.
+   - Update `src/pages/Directory.jsx`, `src/pages/Pipeline.jsx`, and `src/pages/OperationalSwarm.jsx` to use `notificationService` instead of directly calling `toast`.
+   - Also update `src/pages/Workflows.jsx` as requested in the 5% portion.
+
+2. Global Error Fallback UI (Observability)
+   - Update `src/components/ErrorBoundary.jsx`'s `componentDidCatch` method to call `notificationService.notifyError('A critical UI fault occurred. Telemetry dispatched.')`.
+
+3. Webhook Configuration UI (External Lead Ingestion) & 4. Secure Clipboard Utility
+   - Update `src/pages/Workflows.jsx` to add a new "Inbound Lead Webhook" Tailwind configuration panel.
+   - Display a REST endpoint URL (e.g., `https://api.axim-nexus.com/v1/leads/inbound`).
+   - Add a visual JSON payload template showing external systems how to format POST requests.
+   - Add a "Copy to Clipboard" button next to the webhook URL that uses `navigator.clipboard.writeText()` and calls `notificationService.notifySuccess('Webhook URL copied to clipboard.')`.
+
+5. Local Validation Protocol (QA Signoff)
+   - Perform "The Clipboard Test" manually (or simulate) and update `LOCAL_QA_SIGNOFF.txt`.
+   - Perform "The Standardization Test" by checking one of the updated pages (e.g., directory deletion mock) and update `LOCAL_QA_SIGNOFF.txt`.
+
+6. Pre-commit step
+   - Call `pre_commit_instructions` and follow its instructions to ensure proper testing, verification, review, and reflection are done.
+
+7. Mandatory Deployment & Handoff Protocol
+   - Create branch `feature/sprint-1.37-webhooks-and-toasts` and commit changes.
+   - Push to origin using environment token: `git push https://${GITHUB_TOKEN}@github.com/jimellars/axim-nexus-crm-native-app-1-7158.git feature/sprint-1.37-webhooks-and-toasts`.
