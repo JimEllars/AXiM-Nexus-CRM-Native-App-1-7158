@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { notificationService } from '../services/notificationService';
 
 import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
@@ -268,7 +268,7 @@ const Pipeline = () => {
       if (!isSameStage && (stage === 'CLOSED_WON' || stage === 'CLOSED_LOST')) {
          if (stage === 'CLOSED_WON') {
              await activityService.logSystemActivity(`Deal ${deal.title || 'Unknown'} marked as Closed Won`);
-             toast.success(`Deal ${deal.title || 'Unknown'} marked as Closed Won`);
+             notificationService.notifySuccess(`Deal ${deal.title || 'Unknown'} marked as Closed Won`);
          } else {
              await activityService.create({
                 account_id: deal.account_id,
@@ -283,7 +283,7 @@ const Pipeline = () => {
       console.error("Failed to update deal stage:", err);
       // Revert optimistic update
       setLocalDeals(originalDeals);
-      toast.error("Failed to move deal: Network Error");
+      notificationService.notifyError("Failed to move deal: Network Error");
     } finally {
       setMovingDealIds(prev => {
         const next = new Set(prev);

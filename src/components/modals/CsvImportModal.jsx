@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import * as FiIcons from 'react-icons/fi';
-import { toast } from 'react-toastify';
+import { notificationService } from '../../services/notificationService';
 import { contactService } from '../../services/contactService';
 import { activityService } from '../../services/activityService';
 import { useCrm } from '../../context/CrmContext';
@@ -63,7 +63,7 @@ const CsvImportModal = ({ isOpen, onClose }) => {
 
   const handleFile = (file) => {
     if (!file || !file.name.endsWith('.csv')) {
-      toast.error('Invalid file format. Please upload a .csv file.');
+      notificationService.notifyError('Invalid file format. Please upload a .csv file.');
       return;
     }
 
@@ -74,7 +74,7 @@ const CsvImportModal = ({ isOpen, onClose }) => {
         const lines = text.split('\n').filter(line => line.trim() !== '');
 
         if (lines.length < 2) {
-            toast.error('CSV file must contain headers and at least one row of data.');
+            notificationService.notifyError('CSV file must contain headers and at least one row of data.');
             return;
         }
 
@@ -88,11 +88,11 @@ const CsvImportModal = ({ isOpen, onClose }) => {
         setStep('mapping');
 
       } catch (err) {
-        toast.error('Error parsing CSV file.');
+        notificationService.notifyError('Error parsing CSV file.');
       }
     };
     reader.onerror = () => {
-      toast.error('Failed to read file.');
+      notificationService.notifyError('Failed to read file.');
     }
     reader.readAsText(file);
   };
@@ -119,7 +119,7 @@ const CsvImportModal = ({ isOpen, onClose }) => {
       }).filter(contact => Object.keys(contact).length > 1); // Filter out empty maps (only 'type')
 
       if (mappedContacts.length === 0) {
-        toast.error('No valid mappings found. Please map at least one field.');
+        notificationService.notifyError('No valid mappings found. Please map at least one field.');
         setIsImporting(false);
         return;
       }
@@ -132,12 +132,12 @@ const CsvImportModal = ({ isOpen, onClose }) => {
         const chunk = mappedContacts.slice(i, i + chunkSize);
         await contactService.bulkImportContacts(chunk);
         importedCount += chunk.length;
-        toast.info(`Imported ${importedCount} / ${total} records...`);
+        notificationService.notifyInfo(`Imported ${importedCount} / ${total} records...`);
       }
 
       await activityService.logSystemActivity(`Operator bulk imported ${total} contact records via CSV.`);
 
-      toast.success('Import completed successfully.');
+      notificationService.notifySuccess('Import completed successfully.');
 
       if (refreshData) {
           refreshData();
@@ -146,7 +146,7 @@ const CsvImportModal = ({ isOpen, onClose }) => {
       handleClose();
     } catch (err) {
       console.error('Import failed:', err);
-      toast.error('Failed to import contacts. Please try again.');
+      notificationService.notifyError('Failed to import contacts. Please try again.');
     } finally {
       setIsImporting(false);
     }

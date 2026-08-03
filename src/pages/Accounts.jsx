@@ -1,4 +1,4 @@
-import { toast } from 'react-toastify';
+import { notificationService } from '../services/notificationService';
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
@@ -84,7 +84,7 @@ const Accounts = () => {
   const handleExport = async () => {
     try {
       if (!localAccounts || localAccounts.length === 0) {
-        toast.info('No accounts to export.');
+        notificationService.notifyInfo('No accounts to export.');
         return;
       }
 
@@ -116,10 +116,10 @@ const Accounts = () => {
       URL.revokeObjectURL(url);
 
       await activityService.logSystemActivity(`Operator exported ${localAccounts.length} B2B Account records to CSV.`);
-      toast.success('Account records exported successfully.');
+      notificationService.notifySuccess('Account records exported successfully.');
     } catch (e) {
       console.error('Export error:', e);
-      toast.error('Failed to export accounts.');
+      notificationService.notifyError('Failed to export accounts.');
     }
   };
 

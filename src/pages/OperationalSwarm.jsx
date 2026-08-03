@@ -3,7 +3,7 @@ import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { supabase, logToAsguardDLQ } from '../lib/supabase';
-import { toast } from 'react-toastify';
+import { notificationService } from '../services/notificationService';
 import { activityService } from '../services/activityService';
 import { swarmService } from '../services/swarmService';
 
@@ -15,7 +15,7 @@ const OperationalSwarm = () => {
   const handleDeploySwarm = async (e) => {
     e.preventDefault();
     if (delegationForm.agents.length === 0 || !delegationForm.context) {
-       toast.error('Please complete all delegation fields.');
+       notificationService.notifyError('Please complete all delegation fields.');
        return;
     }
 
@@ -34,18 +34,18 @@ const OperationalSwarm = () => {
 
       await activityService.logSystemActivity(`AI Swarm deployed: ${delegationForm.agents.join(", ")}. Context: ${delegationForm.context.substring(0, 50)}...`);
 
-      toast.success(`AI Swarm '${delegationForm.agents.join(", ")}' deployed to edge worker.`);
+      notificationService.notifySuccess(`AI Swarm '${delegationForm.agents.join(", ")}' deployed to edge worker.`);
       setDelegationForm({ agents: [], context: '' });
       setDeployFailed(false);
     } catch (err) {
       clearTimeout(timeoutId);
       if (err.name === 'AbortError') {
         activityService.logSystemActivity(`ERROR: AI Swarm initialization timed out at the edge. Agent: ${delegationForm.agents.join(", ")}`).catch(console.error);
-        toast.error('AI Swarm initialization timed out at the edge. Please retry.');
+        notificationService.notifyError('AI Swarm initialization timed out at the edge. Please retry.');
         setDeployFailed(true);
       } else {
         console.error(err);
-        toast.error('Failed to deploy Swarm');
+        notificationService.notifyError('Failed to deploy Swarm');
         setDeployFailed(true);
       }
     } finally {

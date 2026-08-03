@@ -11,7 +11,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { contactService } from '../services/contactService';
 import { enrichmentService } from '../services/enrichmentService';
 import { activityService } from '../services/activityService';
-import { toast } from 'react-toastify';
+import { notificationService } from '../services/notificationService';
 
 const Directory = () => {
   const { accounts } = useCrm();
@@ -24,8 +24,9 @@ const Directory = () => {
   const [statusFilter, setStatusFilter] = useState('All');
 
   const [localContacts, setLocalContacts] = useState([]);
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 50;
   const [sortConfig, setSortConfig] = useState({ field: 'created_at', ascending: false });
 
   // Quick Add State
@@ -71,12 +72,12 @@ const Directory = () => {
         type: 'B2C_LEAD'
       };
       const newContact = await contactService.create(payload);
-      toast.success('Entity added successfully.');
+      notificationService.notifySuccess('Entity added successfully.');
       await enrichmentService.triggerDataEnrichment(newContact.id, 'CONTACT');
-      toast.success('Enrichment sent to Cloudflare Worker bridge.');
+      notificationService.notifySuccess('Enrichment sent to Cloudflare Worker bridge.');
       setQuickAdd({ firstName: '', lastName: '', email: '', phone: '' });
     } catch (err) {
-      toast.error('Failed to quick add entity.');
+      notificationService.notifyError('Failed to quick add entity.');
     } finally {
       setIsQuickAdding(false);
     }
@@ -85,7 +86,7 @@ const Directory = () => {
   const handleExportCSV = () => {
     try {
       if (!localContacts || localContacts.length === 0) {
-        toast.info('No contacts to export.');
+        notificationService.notifyInfo('No contacts to export.');
         return;
       }
 
@@ -118,39 +119,36 @@ const Directory = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success('Contacts exported successfully.');
+      notificationService.notifySuccess('Contacts exported successfully.');
     } catch (error) {
-      toast.error('Failed to generate CSV export.');
+      notificationService.notifyError('Failed to generate CSV export.');
     }
   };
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        const data = await contactService.getAll(0, debouncedSearchTerm, sortConfig, statusFilter);
-        setLocalContacts(data);
-        setOffset(0);
-        setHasMore(data.length === 50);
-      } catch (error) {
-        console.error("Error fetching contacts:", error);
-      }
-    };
-    fetchContacts();
-  }, [debouncedSearchTerm, sortConfig, statusFilter]);
-
-  const loadMore = async () => {
+  const fetchContacts = async () => {
+    setIsLoading(true);
     try {
-      const nextOffset = offset + 50;
-      const data = await contactService.getAll(nextOffset, debouncedSearchTerm, sortConfig, statusFilter);
-      setLocalContacts(prev => [...prev, ...data]);
-      setOffset(nextOffset);
-      setHasMore(data.length === 50);
+      const { data, count } = await contactService.getAll(page, pageSize, debouncedSearchTerm, sortConfig, statusFilter);
+      setLocalContacts(data);
+      setTotalCount(count);
     } catch (error) {
-      console.error("Error fetching more contacts:", error);
+      console.error('Error fetching contacts:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm, sortConfig, statusFilter]);
+
+  useEffect(() => {
+    fetchContacts();
+  }, [page, debouncedSearchTerm, sortConfig, statusFilter]);
+
+
 
   return (
     <div className="p-8 max-w-7xl mx-auto w-full">
@@ -201,12 +199,12 @@ const Directory = () => {
                 const idsToDelete = [...selectedIds];
                 try {
                   await contactService.bulkDelete(idsToDelete);
-                  toast.success(`Successfully deleted ${idsToDelete.length} records`);
+                  notificationService.notifySuccess(`Successfully deleted ${idsToDelete.length} records`);
                   await activityService.logSystemActivity(`Bulk deleted ${idsToDelete.length} contact records.`);
                   setLocalContacts(prev => prev.filter(c => !idsToDelete.includes(c.id)));
                   setSelectedIds([]);
                 } catch (e) {
-                  toast.error('Failed to delete records');
+                  notificationService.notifyError('Failed to delete records');
                 }
               }}
               className="bg-rose-50 border border-rose-200 text-rose-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-rose-100 transition-all flex items-center space-x-2 shrink-0"
@@ -219,14 +217,14 @@ const Directory = () => {
 
             <button
               onClick={async () => {
-                toast.info(`Starting bulk enrichment for ${selectedIds.length} entities...`);
+                notificationService.notifyInfo(`Starting bulk enrichment for ${selectedIds.length} entities...`);
                 const entities = selectedIds.map(id => ({ entityId: id, entityType: "CONTACT" }));
                 try {
                   await enrichmentService.triggerBulkDataEnrichment(entities);
-                  toast.success("Bulk enrichment completed.");
+                  notificationService.notifySuccess("Bulk enrichment completed.");
                   await activityService.logSystemActivity(`Triggered bulk enrichment for ${entities.length} contact records.`);
                 } catch(e) {
-                  toast.error("Bulk enrichment encountered errors.");
+                  notificationService.notifyError("Bulk enrichment encountered errors.");
                 }
               }}
               className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all flex items-center space-x-2 shrink-0"
@@ -403,17 +401,25 @@ const Directory = () => {
         )}
       </div>
 
-      {hasMore && (
-        <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+        <span className="text-sm font-bold text-slate-500">Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalCount)} of {totalCount} records</span>
+        <div className="flex space-x-2">
           <button
-            onClick={loadMore}
-            className="px-6 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-indigo-300 transition-all shadow-sm flex items-center space-x-2"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <SafeIcon icon={FiIcons.FiRefreshCw} />
-            <span>Load More</span>
+            Previous
+          </button>
+          <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={page * pageSize >= totalCount}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
           </button>
         </div>
-      )}
+      </div>
 
       <CreateContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <BulkAddContactsModal isOpen={isBulkModalOpen} onClose={() => setIsBulkModalOpen(false)} />
