@@ -4,7 +4,7 @@ import { parseMarkdown } from '../utils/formatters.jsx';
 import { useParams, useNavigate } from 'react-router-dom';
 import { emailService } from '../services/emailService';
 import { useCrm } from '../context/CrmContext';
-import { toast } from 'react-toastify';
+import { notificationService } from '../services/notificationService';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import LogActivityModal from '../components/modals/LogActivityModal';
@@ -279,7 +279,7 @@ const { loading, error } = useCrm();
                     const body = bodyInput.value;
 
                     if (!subject || !body) {
-                      toast.error('Subject and message are required.');
+                      notificationService.notifyError('Subject and message are required.');
                       return;
                     }
 
@@ -293,10 +293,10 @@ const { loading, error } = useCrm();
                       );
                       subjectInput.value = '';
                       bodyInput.value = '';
-                      toast.success('Email dispatched to Edge Network successfully.');
+                      notificationService.notifySuccess('Email dispatched to Edge Network successfully.');
                     } catch (err) {
                       console.error(err);
-                      toast.error('Failed to send email. Check connection.');
+                      notificationService.notifyError('Failed to send email. Check connection.');
                     } finally {
                       setIsSending(false);
                     }

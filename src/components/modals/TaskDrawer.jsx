@@ -3,7 +3,7 @@ import { useCrm } from '../../context/CrmContext';
 import { taskService } from '../../services/taskService';
 import SafeIcon from '../../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
-import { toast } from 'react-toastify';
+import { notificationService } from '../../services/notificationService';
 
 const TaskDrawer = ({ isOpen, onClose }) => {
   const { tasks, logSystemActivity, refreshData, session } = useCrm();
@@ -23,10 +23,10 @@ const TaskDrawer = ({ isOpen, onClose }) => {
         );
         setNewTaskTitle('');
         await refreshData();
-        toast.success('Task created successfully.');
+        notificationService.notifySuccess('Task created successfully.');
       } catch (error) {
         console.error('Error creating task:', error);
-        toast.error('Failed to create task.');
+        notificationService.notifyError('Failed to create task.');
       } finally {
         setIsSubmitting(false);
       }
@@ -40,7 +40,7 @@ const TaskDrawer = ({ isOpen, onClose }) => {
       await refreshData();
     } catch (error) {
       console.error('Error toggling task:', error);
-      toast.error('Failed to update task.');
+      notificationService.notifyError('Failed to update task.');
     }
   };
 
@@ -48,10 +48,10 @@ const TaskDrawer = ({ isOpen, onClose }) => {
     try {
       await taskService.deleteTask(id);
       await refreshData();
-      toast.success('Task deleted.');
+      notificationService.notifySuccess('Task deleted.');
     } catch (error) {
       console.error('Error deleting task:', error);
-      toast.error('Failed to delete task.');
+      notificationService.notifyError('Failed to delete task.');
     }
   };
 

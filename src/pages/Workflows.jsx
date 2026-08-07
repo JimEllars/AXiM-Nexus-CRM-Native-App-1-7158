@@ -3,13 +3,22 @@ import { useCrm } from '../context/CrmContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useState } from 'react';
-import { toast } from 'react-toastify';
+import { notificationService } from '../services/notificationService';
 
 const Workflows = () => {
   const { workflows, toggleWorkflow, deleteWorkflow, addWorkflow } = useCrm();
   const [isDeploying, setIsDeploying] = useState(false);
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [newAgent, setNewAgent] = useState({ name: '', target_entity_type: 'DEAL', trigger_conditions: '{"stage": "CLOSED_WON"}', action_payload: '{"template": "webhook_notify"}' });
+  const [webhookSecret, setWebhookSecret] = useState('');
+
+  const generateSecret = () => {
+    const array = new Uint8Array(16);
+    window.crypto.getRandomValues(array);
+    const secret = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    setWebhookSecret(secret);
+    notificationService.notifyWarning('Secret generated. Save this securely; it will not be shown again.');
+  };
 
   const handleDeploy = async (e) => {
     e.preventDefault();
@@ -23,11 +32,11 @@ const Workflows = () => {
         is_active: true
       };
       await addWorkflow(payload);
-      toast.success('Agent deployed to automation swarm.');
+      notificationService.notifySuccess('Agent deployed to automation swarm.');
       setShowDeployModal(false);
       setNewAgent({ name: '', target_entity_type: 'DEAL', trigger_conditions: '{"stage": "CLOSED_WON"}', action_payload: '{"template": "webhook_notify"}' });
     } catch (err) {
-      toast.error('Failed to deploy agent. Check JSON formats.');
+      notificationService.notifyError('Failed to deploy agent. Check JSON formats.');
     } finally {
       setIsDeploying(false);
     }
@@ -117,6 +126,30 @@ const Workflows = () => {
               ))}
             </div>
             <button className="w-full mt-6 py-2 bg-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-500 transition-all">Apply Global Tuning</button>
+          </div>
+
+                    <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <h4 className="text-sm font-bold text-slate-900 mb-4">Inbound Lead Webhook</h4>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Webhook URL</label>
+                <div className="flex">
+                  <input type="text" readOnly value="https://api.axim-nexus.com/v1/webhooks/inbound" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-l-lg text-xs font-mono text-slate-600 outline-none" />
+                  <button onClick={() => { navigator.clipboard.writeText("https://api.axim-nexus.com/v1/webhooks/inbound"); notificationService.notifySuccess("Copied to clipboard!"); }} className="px-4 bg-slate-100 border-y border-r border-slate-200 text-slate-600 rounded-r-lg hover:bg-slate-200 transition-colors">
+                    <SafeIcon icon={FiIcons.FiCopy} />
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Webhook Auth Secret</label>
+                <div className="flex gap-2">
+                  <input type="password" disabled value={webhookSecret} placeholder="Click generate to create..." className="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-600 outline-none disabled:bg-slate-100" />
+                  <button onClick={generateSecret} className="px-4 py-2.5 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors whitespace-nowrap">
+                    Generate New Secret
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 p-6">

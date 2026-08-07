@@ -1,4 +1,4 @@
-import { toast } from 'react-toastify';
+import { notificationService } from '../services/notificationService';
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 import { accountService } from '../services/accountService';
 import { contactService } from '../services/contactService';
@@ -26,7 +26,10 @@ export const CrmProvider = ({ children }) => {
   const [activities, setActivities] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [isSweeping, setIsSweeping] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('axim_dark_mode');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   
   const [workflows, setWorkflows] = useState([]);
   const [session, setSession] = useState(null);
@@ -66,7 +69,7 @@ export const CrmProvider = ({ children }) => {
       if (response.status === 401 || response.status === 403) {
          const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
          if (url.includes('supabase.co')) {
-             toast.error('Session expired. Please log in again.');
+             notificationService.notifyError('Session expired. Please log in again.');
              supabase.auth.signOut();
              window.location.href = '/login';
          }
@@ -164,7 +167,7 @@ export const CrmProvider = ({ children }) => {
 
     const broadcastChannel = supabase.channel('enrichment-events')
       .on('broadcast', { event: 'enrichment_completed' }, (payload) => {
-        toast.success("Ecosystem Scraper completed a record sync");
+        notificationService.notifySuccess("Ecosystem Scraper completed a record sync");
         const logData = payload.payload?.data || payload;
         enrichmentService.addToQueue({
           entityId: logData.entityId || 'SYS-SYNC',
@@ -337,12 +340,12 @@ export const CrmProvider = ({ children }) => {
 
     try {
       await workflowService.updateWorkflowStatus(workflowId, !wf.is_active);
-      toast.success(!wf.is_active ? 'Workflow activated' : 'Workflow deactivated');
+      notificationService.notifySuccess(!wf.is_active ? 'Workflow activated' : 'Workflow deactivated');
     } catch (e) {
       console.error(e);
       // Revert on failure
       setWorkflows(prev => prev.map(w => w.id === workflowId ? { ...w, is_active: wf.is_active } : w));
-      toast.error('Failed to toggle workflow state.');
+      notificationService.notifyError('Failed to toggle workflow state.');
     }
   };
 
@@ -359,7 +362,7 @@ export const CrmProvider = ({ children }) => {
       console.error(e);
       // Revert on failure
       setWorkflows(prev => [...prev, wf]);
-      toast.error('Failed to delete workflow.');
+      notificationService.notifyError('Failed to delete workflow.');
     }
   };
 
@@ -423,7 +426,11 @@ export const CrmProvider = ({ children }) => {
   return (
     <CrmContext.Provider value={{
       session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
-      addDeal, updateDeal, addActivity, logSystemActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => !prev), isUserOnline, setIsUserOnline, presenceChannel
+      addDeal, updateDeal, addActivity, logSystemActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => {
+        const newValue = !prev;
+        localStorage.setItem('axim_dark_mode', JSON.stringify(newValue));
+        return newValue;
+      }), isUserOnline, setIsUserOnline, presenceChannel
     }}>
       {children}
     </CrmContext.Provider>

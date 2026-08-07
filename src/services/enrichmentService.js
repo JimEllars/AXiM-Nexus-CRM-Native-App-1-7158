@@ -1,4 +1,4 @@
-import { toast } from 'react-toastify';
+import { notificationService } from './notificationService';
 
 let requestTimestamps = [];
 
@@ -50,7 +50,7 @@ export const enrichmentService = {
     requestTimestamps = requestTimestamps.filter(t => now - t < 10000);
 
     if (!skipLocalLimit && requestTimestamps.length >= 5) {
-      toast.warn('Rate Limit Exceeded: Scraper bridge cooling down');
+      notificationService.notifyWarning('Rate Limit Exceeded: Scraper bridge cooling down');
 
       // Log to DLQ telemetry
       try {
@@ -72,7 +72,7 @@ export const enrichmentService = {
 
     if (!bridgeUrl) {
       console.warn("VITE_ENRICHMENT_BRIDGE_URL is not defined.");
-      toast.error('Enrichment Bridge URL is not configured.');
+      notificationService.notifyError('Enrichment Bridge URL is not configured.');
       this.addToQueue({ entityId, entityType, status: 'Failed' });
       throw new Error('Bridge URL is not configured');
     }
@@ -114,7 +114,7 @@ export const enrichmentService = {
       return data;
     } catch (error) {
       console.error('Enrichment bridge error:', error);
-      toast.error('Enrichment Bridge unreachable.');
+      notificationService.notifyError('Enrichment Bridge unreachable.');
       this.addToQueue({ entityId, entityType, status: 'Failed' });
       throw error;
     }
