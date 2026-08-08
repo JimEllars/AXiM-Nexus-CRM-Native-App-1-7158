@@ -23,7 +23,21 @@ import CommandPalette from './components/modals/CommandPalette';
 
 const MainLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { isDarkMode } = useCrm();
+
+  const { isDarkMode, setIsGlobalTaskDrawerOpen } = useCrm();
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      // Cmd+J (Mac) or Ctrl+J (Windows)
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        setIsGlobalTaskDrawerOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [setIsGlobalTaskDrawerOpen]);
+
 
   useEffect(() => {
     if (isDarkMode) {

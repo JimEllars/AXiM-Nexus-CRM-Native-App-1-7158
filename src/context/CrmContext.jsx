@@ -26,6 +26,7 @@ export const CrmProvider = ({ children }) => {
   const [activities, setActivities] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [isSweeping, setIsSweeping] = useState(false);
+  const [isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('axim_dark_mode');
     return saved !== null ? JSON.parse(saved) : true;
@@ -430,7 +431,7 @@ export const CrmProvider = ({ children }) => {
         const newValue = !prev;
         localStorage.setItem('axim_dark_mode', JSON.stringify(newValue));
         return newValue;
-      }), isUserOnline, setIsUserOnline, presenceChannel
+      }), isUserOnline, setIsUserOnline, presenceChannel, isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen
     }}>
       {children}
     </CrmContext.Provider>

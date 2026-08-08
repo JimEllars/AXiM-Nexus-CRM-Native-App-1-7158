@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import { taskService } from '../../services/taskService';
 import SafeIcon from '../../common/SafeIcon';
@@ -11,6 +11,17 @@ const TaskDrawer = ({ isOpen, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const activeTasks = tasks.filter(t => t.status !== 'DONE' || t.status === 'TODO'); // Or map as needed
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current.focus();
+      }, 300); // Wait for transition
+    }
+  }, [isOpen]);
+
 
   const handleCreateTask = async (e) => {
     if (e.key === 'Enter' && newTaskTitle.trim()) {
@@ -73,6 +84,7 @@ const TaskDrawer = ({ isOpen, onClose }) => {
 
         <div className="p-4 border-b border-slate-100 bg-white">
           <input
+            ref={inputRef}
             type="text"
             placeholder="Add a new task... (Press Enter)"
             value={newTaskTitle}

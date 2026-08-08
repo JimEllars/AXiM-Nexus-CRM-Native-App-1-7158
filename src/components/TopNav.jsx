@@ -8,10 +8,9 @@ import * as FiIcons from 'react-icons/fi';
 import { supabase } from '../lib/supabase';
 
 const TopNav = ({ toggleSidebar }) => {
-  const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
-  const [isAgentDrawerOpen, setIsAgentDrawerOpen] = useState(false);
+    const [isAgentDrawerOpen, setIsAgentDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks, isUserOnline } = useCrm();
+  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks, isUserOnline, isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen } = useCrm();
   const incompleteTasksCount = (tasks || []).filter(t => t.status !== 'DONE').length;
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -207,7 +206,7 @@ const TopNav = ({ toggleSidebar }) => {
           <SafeIcon icon={isDarkMode ? FiIcons.FiSun : FiIcons.FiMoon} className="text-xl" />
         </button>
         <button
-          onClick={() => setIsTaskDrawerOpen(true)}
+          onClick={() => setIsGlobalTaskDrawerOpen(true)}
           className="text-slate-400 hover:text-indigo-600 transition-colors relative"
           title="Open Task Drawer"
         >
@@ -278,7 +277,7 @@ const TopNav = ({ toggleSidebar }) => {
         </div>
       </div>
     </header>
-      <TaskDrawer isOpen={isTaskDrawerOpen} onClose={() => setIsTaskDrawerOpen(false)} />
+      <TaskDrawer isOpen={isGlobalTaskDrawerOpen} onClose={() => setIsGlobalTaskDrawerOpen(false)} />
       <AgentProfileDrawer isOpen={isAgentDrawerOpen} onClose={() => setIsAgentDrawerOpen(false)} />
     </>
   );
