@@ -7,6 +7,8 @@ import { useDebounce } from '../hooks/useDebounce';
 import { accountService } from '../services/accountService';
 import { activityService } from '../services/activityService';
 import { supabase, logToAsguardDLQ } from '../lib/supabase';
+import CreateAccountModal from '../components/modals/CreateAccountModal';
+import CsvImportModal from '../components/modals/CsvImportModal';
 
 const Accounts = () => {
   const { deals, contacts } = useCrm();
@@ -15,6 +17,9 @@ const Accounts = () => {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [sortConfig, setSortConfig] = useState({ field: 'created_at', ascending: false });
+  const [isCreateAccountOpen, setIsCreateAccountOpen] = useState(false);
+  const [isCsvImportOpen, setIsCsvImportOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -30,7 +35,7 @@ const Accounts = () => {
       }
     };
     fetchAccounts();
-  }, [debouncedSearchTerm, sortConfig]);
+  }, [debouncedSearchTerm, sortConfig, refreshKey]);
 
 
   useEffect(() => {
@@ -170,8 +175,11 @@ const Accounts = () => {
             <SafeIcon icon={FiIcons.FiDownload} />
             <span>Export CSV</span>
           </button>
-          <button className="bg-slate-900 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-indigo-100 shrink-0">
-
+          <button onClick={() => setIsCsvImportOpen(true)} className="bg-white text-slate-700 border border-slate-200 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0">
+            <SafeIcon icon={FiIcons.FiUpload} />
+            <span>Import CSV</span>
+          </button>
+          <button onClick={() => setIsCreateAccountOpen(true)} className="bg-slate-900 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-indigo-100 shrink-0">
             <SafeIcon icon={FiIcons.FiPlus} />
             <span>New Account</span>
           </button>
@@ -215,7 +223,7 @@ const Accounts = () => {
               </div>
               <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                  {acc.employee_count.toLocaleString()} Employees
+                  {(acc.employee_count || 0).toLocaleString()} Employees
                 </div>
                 <button className="text-slate-400 hover:text-indigo-600 transition-colors">
                   <SafeIcon icon={FiIcons.FiArrowRight} />
@@ -238,6 +246,8 @@ const Accounts = () => {
           </button>
         </div>
       )}
+      <CreateAccountModal isOpen={isCreateAccountOpen} onClose={() => setIsCreateAccountOpen(false)} onCreated={() => setRefreshKey(key => key + 1)} />
+      <CsvImportModal isOpen={isCsvImportOpen} onClose={() => setIsCsvImportOpen(false)} entityType="accounts" onImportComplete={() => setRefreshKey(key => key + 1)} />
     </div>
   );
 };

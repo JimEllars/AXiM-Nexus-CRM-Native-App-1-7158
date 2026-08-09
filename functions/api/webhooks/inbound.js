@@ -1,37 +1,47 @@
 import { createClient } from '@supabase/supabase-js';
 
+const jsonResponse = (body, status) => new Response(JSON.stringify(body), {
+  status,
+  headers: { 'Content-Type': 'application/json' }
+});
+
+const validContactTypes = new Set(['B2B_LEAD', 'B2C_LEAD']);
+const validSources = new Set(['GROUND_GAME_INTERNAL', 'AXIM_INTERNAL']);
+
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
     const authHeader = request.headers.get('Authorization');
 
-    if (authHeader !== env.WEBHOOK_SECRET) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    if (!env.WEBHOOK_SECRET || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY || !env.AXIM_ORGANIZATION_ID) {
+      return jsonResponse({ error: 'Webhook is not configured.' }, 503);
+    }
+
+    if (authHeader !== `Bearer ${env.WEBHOOK_SECRET}`) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+
+    const contentLength = Number(request.headers.get('Content-Length') || 0);
+    if (contentLength > 1000000) {
+      return jsonResponse({ error: 'Payload exceeds the 1 MB limit.' }, 413);
     }
 
     let payload;
     try {
       payload = await request.json();
     } catch (err) {
-      return new Response(JSON.stringify({ error: 'Invalid JSON payload' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse({ error: 'Invalid JSON payload' }, 400);
     }
 
-    const { first_name, last_name, email, source } = payload;
+    const { first_name, last_name, email, phone, source = 'GROUND_GAME_INTERNAL', type = 'B2C_LEAD' } = payload;
 
-    if (!email) {
-      return new Response(JSON.stringify({ error: 'Missing email field' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    if (!first_name || !last_name || !email || !validContactTypes.has(type) || !validSources.has(source)) {
+      return jsonResponse({ error: 'first_name, last_name, email, and a valid B2B_LEAD or B2C_LEAD type are required.' }, 400);
     }
 
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
 
     const { data: contact, error: contactError } = await supabase
       .from('contacts')
@@ -39,40 +49,34 @@ export async function onRequestPost(context) {
         first_name,
         last_name,
         email,
-        source
+        phone: phone || null,
+        type,
+        source,
+        organization_id: env.AXIM_ORGANIZATION_ID
       }])
       .select()
       .single();
 
     if (contactError) {
-      return new Response(JSON.stringify({ error: 'Database error', details: contactError }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      console.error('Inbound contact insert failed:', contactError.message);
+      return jsonResponse({ error: 'Contact ingestion failed.' }, 500);
     }
 
     const { error: activityError } = await supabase
       .from('activities')
       .insert([{
         type: 'SYSTEM_ALERT',
-        description: 'New lead ingested via external webhook.'
+        description: `New ${type} lead ingested through ${source}.`,
+        organization_id: env.AXIM_ORGANIZATION_ID
       }]);
 
     if (activityError) {
-      // We might just log this and still return 200 since the contact was inserted,
-      // but returning 500 is safer if telemetry is strictly required. Let's return 200 but log error,
-      // or just wait - the prompt says "must also insert", so let's check it.
-      // We'll proceed with 200 for now.
+      console.error('Inbound activity insert failed:', activityError.message);
     }
 
-    return new Response(JSON.stringify({ message: 'Success', contact }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return jsonResponse({ id: contact.id, message: 'Contact ingested.' }, 201);
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Internal Server Error', details: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error('Inbound webhook failed:', error);
+    return jsonResponse({ error: 'Internal Server Error' }, 500);
   }
 }
