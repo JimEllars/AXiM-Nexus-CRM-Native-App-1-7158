@@ -112,7 +112,7 @@ export const CrmProvider = ({ children }) => {
 
       if (isBackground) {
         setAccounts(prev => mergeArrays(prev, accs || []));
-        setContacts(prev => mergeArrays(prev, cons || []));
+        setContacts(prev => mergeArrays(prev, cons.data || []));
         setDeals(prev => mergeArrays(prev, dls || []));
         setActivities(prev => mergeArrays(prev, acts || []));
         setCampaigns(prev => mergeArrays(prev, camps || []));
@@ -120,7 +120,7 @@ export const CrmProvider = ({ children }) => {
         setWorkflows(prev => mergeArrays(prev, wfs || []));
       } else {
         setAccounts(accs || []);
-        setContacts(cons || []);
+        setContacts(cons.data || []);
         setDeals(dls || []);
         setActivities(acts || []);
         setCampaigns(camps || []);

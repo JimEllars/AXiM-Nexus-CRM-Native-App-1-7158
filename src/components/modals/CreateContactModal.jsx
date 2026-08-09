@@ -14,7 +14,7 @@ const CreateContactModal = ({ isOpen, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = { ...formData };
-    if (payload.type === 'B2C_CONSUMER') {
+    if (payload.type === 'B2C_LEAD') {
       payload.account_id = null;
     }
     addContact(payload);
@@ -39,8 +39,8 @@ const CreateContactModal = ({ isOpen, onClose }) => {
             </button>
             <button
               type="button"
-              onClick={() => setFormData({...formData, type: 'B2C_CONSUMER'})}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${formData.type === 'B2C_CONSUMER' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => setFormData({...formData, type: 'B2C_LEAD'})}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${formData.type === 'B2C_LEAD' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
             >
               B2C Consumer
             </button>

@@ -11,6 +11,7 @@ const Workflows = () => {
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [newAgent, setNewAgent] = useState({ name: '', target_entity_type: 'DEAL', trigger_conditions: '{"stage": "CLOSED_WON"}', action_payload: '{"template": "webhook_notify"}' });
   const [webhookSecret, setWebhookSecret] = useState('');
+  const inboundWebhookUrl = `${import.meta.env.VITE_CRM_PUBLIC_URL || window.location.origin}/api/webhooks/inbound`;
 
   const generateSecret = () => {
     const array = new Uint8Array(16);
@@ -134,8 +135,8 @@ const Workflows = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Webhook URL</label>
                 <div className="flex">
-                  <input type="text" readOnly value="https://api.axim-nexus.com/v1/webhooks/inbound" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-l-lg text-xs font-mono text-slate-600 outline-none" />
-                  <button onClick={() => { navigator.clipboard.writeText("https://api.axim-nexus.com/v1/webhooks/inbound"); notificationService.notifySuccess("Copied to clipboard!"); }} className="px-4 bg-slate-100 border-y border-r border-slate-200 text-slate-600 rounded-r-lg hover:bg-slate-200 transition-colors">
+                  <input type="text" readOnly value={inboundWebhookUrl} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-l-lg text-xs font-mono text-slate-600 outline-none" />
+                  <button onClick={() => { navigator.clipboard.writeText(inboundWebhookUrl); notificationService.notifySuccess("Copied to clipboard!"); }} className="px-4 bg-slate-100 border-y border-r border-slate-200 text-slate-600 rounded-r-lg hover:bg-slate-200 transition-colors">
                     <SafeIcon icon={FiIcons.FiCopy} />
                   </button>
                 </div>
