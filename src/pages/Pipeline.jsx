@@ -121,7 +121,7 @@ const DealCard = ({ deal, index, onClick, isMoving, onDragEnter }) => {
 const Pipeline = () => {
   const { deals, moveDealStage, campaigns, loading, error, realtimeStatus, session } = useCrm();
   const [localDeals, setLocalDeals] = useState(deals);
-  const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com'; // rudimentary admin check
+  const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com' || session?.user?.email === 'james.ellars@axim.us.com'; // rudimentary admin check
 
   const [pipelineType, setPipelineType] = useState('b2b');
   const [movingDealIds, setMovingDealIds] = useState(new Set());

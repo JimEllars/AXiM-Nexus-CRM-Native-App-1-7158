@@ -1,7 +1,2 @@
-LOCAL QA SIGNOFF - AXiM Nexus CRM
-
-Step 1: The B2B/B2C Test
-[X] Verified in src/pages/Directory.jsx code that contacts with accounts use a blue "B2B" badge, and contacts without an account use a green "B2C" badge.
-
-Step 2: The Tenant Context Test
-[X] Verified in src/context/CrmContext.jsx code that activeOrganization is initialized to { id: 'axim-internal-001', name: 'AXiM Nexus' } and is correctly exported in the CrmContext provider value object.
+Step 1: The Executive Override Test: PASSED - Mocked session with james.ellars@axim.us.com confirms all deals and directory items render successfully.
+Step 2: The Demographics Test: PASSED - Navigated to Analytics dashboard, Recharts Pie Chart correctly renders contact demographics.

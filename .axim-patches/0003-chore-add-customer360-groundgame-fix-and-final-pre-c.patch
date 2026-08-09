@@ -1,0 +1,26 @@
+From f17296977429dbb423c98ad670cdcc905ffd8d2b Mon Sep 17 00:00:00 2001
+From: "google-labs-jules[bot]"
+ <161369871+google-labs-jules[bot]@users.noreply.github.com>
+Date: Sun, 9 Aug 2026 02:34:56 +0000
+Subject: [PATCH 3/3] chore: add customer360 groundgame fix and final
+ pre-commit artifacts
+
+---
+ src/pages/Customer360.jsx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/pages/Customer360.jsx b/src/pages/Customer360.jsx
+index 9b30b57..c76fc93 100644
+--- a/src/pages/Customer360.jsx
++++ b/src/pages/Customer360.jsx
+@@ -119,7 +119,7 @@ const { loading, error } = useCrm();
+         </button>
+         <div className="flex w-full sm:w-auto space-x-3">
+           <button
+-            onClick={() => notificationService.notifyInfo('Ground Game sync API endpoint pending.')}
++            onClick={() => fetch('/api/sync/groundgame', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(contact) }).then(res => { if(res.ok) notificationService.notifySuccess('Record synced to Ground Game.'); else throw new Error(); }).catch(e => notificationService.notifyError('Failed to sync to Ground Game.'))}
+             className="flex-1 sm:flex-none bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center justify-center space-x-2"
+           >
+             <SafeIcon icon={FiIcons.FiRefreshCw} />
+--
+2.53.0
