@@ -8,6 +8,7 @@ import { notificationService } from '../services/notificationService';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import LogActivityModal from '../components/modals/LogActivityModal';
+import EmailComposerModal from '../components/modals/EmailComposerModal';
 import EnrichmentStatusPanel from '../components/EnrichmentStatusPanel';
 
 const ActivityIcon = ({ type }) => {
@@ -46,6 +47,7 @@ const Customer360 = () => {
   const navigate = useNavigate();
   const { contacts, accounts, activities, deals, logSystemActivity } = useCrm();
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [filterType, setFilterType] = useState('All');
   const [isSending, setIsSending] = useState(false);
 
