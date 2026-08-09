@@ -1,3 +1,5 @@
+import { supabase } from '../lib/supabase';
+
 export const emailService = {
   async sendTransactionalEmail(to, subject, body) {
     const response = await fetch('/api/email/send', {
@@ -19,5 +21,48 @@ export const emailService = {
     }
 
     return response.json();
+  },
+
+  async getTemplates() {
+    const { data, error } = await supabase
+      .from('email_templates')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    return data;
+  },
+
+  async createTemplate(template) {
+    const { data, error } = await supabase
+      .from('email_templates')
+      .insert([template])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async updateTemplate(id, updates) {
+    const { data, error } = await supabase
+      .from('email_templates')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteTemplate(id) {
+    const { error } = await supabase
+      .from('email_templates')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
   }
 };

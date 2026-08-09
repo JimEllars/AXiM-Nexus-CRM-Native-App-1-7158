@@ -2,8 +2,6 @@ export async function onRequestPost(context) {
   try {
     const { request, env } = context;
 
-    // Check for secret if configured, but allow bypass for testing if not set
-    // The prompt says: It must authenticate using context.env.NEXUS_API_SECRET
     const authHeader = request.headers.get('Authorization');
     const secret = env.NEXUS_API_SECRET;
 
@@ -25,13 +23,38 @@ export async function onRequestPost(context) {
       });
     }
 
-    // Simulate a 1-second delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const resendApiKey = env.EMAIL_PROVIDER_API_KEY;
 
-    // Return a 200 OK with a mock message_id
+    if (!resendApiKey) {
+      return new Response(JSON.stringify({ error: 'Missing EMAIL_PROVIDER_API_KEY' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'hello@axim.us.com',
+        to: to,
+        subject: subject,
+        html: emailBody
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+       throw new Error(data.message || 'Failed to send email via Resend');
+    }
+
     return new Response(JSON.stringify({
       message: 'Email dispatched successfully',
-      message_id: `mock-id-${Date.now()}`
+      message_id: data.id
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }

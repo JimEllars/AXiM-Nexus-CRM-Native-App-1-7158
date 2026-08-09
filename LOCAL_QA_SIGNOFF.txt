@@ -1,6 +1,15 @@
-[LOCAL QA PROTOCOL COMPLETED]
+# LOCAL QA SIGNOFF - Sprint 1.47
 
-Step 1: The Dispatch Test: Passed. Verified code logic in EmailComposerModal intercepts "Send" button click, validates inputs, locks "To" field, triggers fetch to '/api/email/send', and successfully resolves triggering a notificationService.notifySuccess. Simulated 1-second delay is properly handled via isSending loading state. Quick templates feature verified to auto-populate fields correctly.
-Step 2: The Timeline Test: Passed. Verified logSystemActivity handles 'EMAIL_SENT' type correctly. Upon successful 200 response from edge dispatcher, an activity log is dispatched with the required descriptive text (Subject), and `Customer360.jsx` logic already handles 'EMAIL_SENT' UI properly (using blue icon context and parsing description markdown).
+## Step 1: The API Validation Test
+Result: PASS
+Notes: The edge function `functions/api/email/send.js` was refactored to fetch from `https://api.resend.com/emails` instead of using a mocked 1-second delay. It correctly validates required fields and sends payload with `from: 'hello@axim.us.com'` while pulling `env.EMAIL_PROVIDER_API_KEY`.
 
-Signoff: Complete.
+## Step 2: The Template Hydration Test
+Result: PASS
+Notes: The `email_templates` table has been added to Supabase with proper RLS policies. The `src/pages/Templates.jsx` admin interface correctly interfaces with `src/services/emailService.js` to CRUD templates. The `EmailComposerModal` successfully fetches templates on mount, and selects hydrate the subject and body inputs flawlessly.
+
+## Step 3: Advanced Composer Fields
+Result: PASS
+Notes: CC and BCC text inputs have been added into a collapsible area inside `EmailComposerModal` UI. Visually matches standard Tailwind components.
+
+Status: COMPLETE

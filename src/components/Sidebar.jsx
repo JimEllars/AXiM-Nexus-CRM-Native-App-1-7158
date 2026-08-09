@@ -15,6 +15,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Accounts', path: '/accounts', icon: FiIcons.FiBriefcase },
     { name: 'Campaigns', path: '/campaigns', icon: FiIcons.FiTarget },
     { name: 'Analytics', path: '/analytics', icon: FiIcons.FiPieChart },
+    { name: 'Templates', path: '/templates', icon: FiIcons.FiMail, adminOnly: true },
     { name: 'Onyx Core', path: '/settings', icon: FiIcons.FiCpu, adminOnly: true },
   ];
 
