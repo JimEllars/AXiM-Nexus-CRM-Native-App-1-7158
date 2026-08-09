@@ -252,6 +252,37 @@ const Dashboard = () => {
             <SafeIcon icon={FiIcons.FiLayers} className="absolute -bottom-4 -right-4 text-7xl text-white/5" />
           </div>
         </div>
+
+        {/* Recent System Events - Audit Log Scaffolding */}
+        <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 col-span-1 lg:col-span-3">
+          <h3 className="font-black text-slate-900 mb-6 uppercase tracking-widest text-xs flex items-center justify-between">
+            <span>Recent System Events</span>
+            <SafeIcon icon={FiIcons.FiActivity} className="text-indigo-600" />
+          </h3>
+          <div className="space-y-4">
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
+              <div>
+                <div className="text-xs font-black text-slate-800">Lead ingested</div>
+                <div className="text-[9px] font-black text-slate-400 mt-1">Webhook Processor</div>
+              </div>
+              <div className="text-[10px] uppercase font-black px-2 py-1 rounded bg-slate-200 text-slate-700">Just now</div>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
+              <div>
+                <div className="text-xs font-black text-slate-800">Swarms deployed</div>
+                <div className="text-[9px] font-black text-slate-400 mt-1">Onyx Mk3</div>
+              </div>
+              <div className="text-[10px] uppercase font-black px-2 py-1 rounded bg-slate-200 text-slate-700">2 mins ago</div>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
+              <div>
+                <div className="text-xs font-black text-slate-800">Duplicate resolution completed</div>
+                <div className="text-[9px] font-black text-slate-400 mt-1">Data Hygiene Engine</div>
+              </div>
+              <div className="text-[10px] uppercase font-black px-2 py-1 rounded bg-slate-200 text-slate-700">15 mins ago</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
