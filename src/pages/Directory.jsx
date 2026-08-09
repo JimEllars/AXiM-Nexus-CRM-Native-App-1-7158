@@ -455,6 +455,54 @@ const Directory = () => {
         }}
       />
 
+
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 transform transition-transform duration-300 translate-y-0">
+          <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm">
+                {selectedIds.length}
+              </span>
+              <span className="text-slate-700 font-bold">Contacts Selected</span>
+            </div>
+
+            <div className="flex items-center space-x-4 w-full md:w-auto">
+              <select
+                className="flex-1 md:w-64 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none"
+                id="bulk-agent-select"
+              >
+                <option value="">Select Agent to Assign...</option>
+                <option value="james.ellars@axim.us.com">James Ellars (Super-Admin)</option>
+                <option value="agent1@axim.us.com">Agent Alpha</option>
+                <option value="agent2@axim.us.com">Agent Beta</option>
+              </select>
+
+              <button
+                onClick={async () => {
+                  const agentId = document.getElementById('bulk-agent-select').value;
+                  if (!agentId) {
+                    notificationService.notifyWarning('Please select an agent to assign.');
+                    return;
+                  }
+                  try {
+                    await contactService.bulkAssignContacts(selectedIds, agentId);
+                    notificationService.notifySuccess('Contacts successfully assigned.');
+                    setSelectedIds([]);
+                    fetchContacts();
+                  } catch (error) {
+                    notificationService.notifyError('Failed to assign contacts.');
+                  }
+                }}
+                className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 whitespace-nowrap flex items-center space-x-2"
+              >
+                <SafeIcon icon={FiIcons.FiUserCheck} />
+                <span>Assign Contacts</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

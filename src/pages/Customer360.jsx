@@ -143,7 +143,16 @@ const { loading, error } = useCrm();
             <div className="w-20 h-20 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-3xl font-black mb-6">
               {contact.first_name[0]}{contact.last_name[0]}
             </div>
-            <h2 className="text-2xl font-black text-slate-900">{contact.first_name} {contact.last_name}</h2>
+
+            <div className="flex items-center space-x-2">
+              <h2 className="text-2xl font-black text-slate-900">{contact.first_name} {contact.last_name}</h2>
+              {contact.groundgame_id && (
+                <div title="Synced with Ground Game" className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm">
+                  <SafeIcon icon={FiIcons.FiLink} className="text-xs" />
+                </div>
+              )}
+            </div>
+
             <p className="text-xs font-black text-indigo-600 uppercase tracking-widest mt-1 mb-8">{contact.type.replace('_', ' ')}</p>
             
             <div className="space-y-4">

@@ -1,1 +1,2 @@
-git push origin feature/sprint-1.42-groundgame-sync
+#!/bin/bash
+git push https://${GITHUB_TOKEN}@github.com/JimEllars/AXiM-Nexus-CRM-Native-App-1-7158 feature/sprint-1.43-bulk-assign-and-sync || true

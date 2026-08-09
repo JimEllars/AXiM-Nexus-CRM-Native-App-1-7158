@@ -75,6 +75,23 @@ export const contactService = {
     return data || [];
   },
 
+
+  async bulkAssignContacts(contactIds, agentId) {
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .update({ assigned_to: agentId })
+        .in('id', contactIds)
+        .select();
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error assigning contacts:', error);
+      throw error;
+    }
+  },
+
   async bulkDelete(ids) {
     const { data, error } = await supabase
       .from('contacts')
