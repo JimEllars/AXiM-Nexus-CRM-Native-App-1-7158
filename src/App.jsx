@@ -11,6 +11,7 @@ import Account360 from './pages/Account360';
 import Customer360 from './pages/Customer360';
 import Analytics from './pages/Analytics';
 import Workflows from './pages/Workflows';
+import Templates from './pages/Templates';
 import Campaigns from './pages/Campaigns';
 import OperationalSwarm from './pages/OperationalSwarm';
 import './App.css';
@@ -86,6 +87,7 @@ function App() {
                 <Route path="/campaigns" element={<Campaigns />} />
                 <Route path="/swarm" element={<OperationalSwarm />} />
                 <Route path="/settings" element={<Workflows />} />
+                <Route path="/templates" element={<Templates />} />
               </Routes>
             </MainLayout>
           } />

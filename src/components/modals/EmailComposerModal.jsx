@@ -5,41 +5,55 @@ import { notificationService } from '../../services/notificationService';
 import { activityService } from '../../services/activityService';
 import SafeIcon from '../../common/SafeIcon';
 
-const templates = {
-  "Standard Introduction": {
-    subject: "Introduction: AXiM Services",
-    body: "Hi there,\n\nI'd like to introduce myself and AXiM Services. We specialize in providing comprehensive solutions tailored to your business needs.\n\nCould we schedule a brief call next week to discuss how we might assist you?\n\nBest regards,\n[Your Name]"
-  },
-  "Follow-up Check-in": {
-    subject: "Following up on our last conversation",
-    body: "Hello,\n\nI hope you're doing well.\n\nI'm following up on our previous conversation to see if you had any further questions or if there's anything else I can help with.\n\nLooking forward to hearing from you.\n\nBest,\n[Your Name]"
-  }
-};
-
 const EmailComposerModal = ({ isOpen, onClose, contact, logSystemActivity }) => {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [cc, setCc] = useState('');
+  const [bcc, setBcc] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [templates, setTemplates] = useState([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
 
-  // Reset form when modal opens with new contact
   useEffect(() => {
     if (isOpen) {
       setSubject('');
       setBody('');
+      setCc('');
+      setBcc('');
+      setShowAdvanced(false);
       setSelectedTemplate('');
       setIsSending(false);
+      fetchTemplates();
     }
   }, [isOpen]);
+
+  const fetchTemplates = async () => {
+    setIsLoadingTemplates(true);
+    try {
+      const data = await emailService.getTemplates();
+      setTemplates(data || []);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      // Suppress error in UI since templates are optional
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  };
 
   if (!isOpen || !contact) return null;
 
   const handleTemplateChange = (e) => {
-    const templateName = e.target.value;
-    setSelectedTemplate(templateName);
-    if (templates[templateName]) {
-      setSubject(templates[templateName].subject);
-      setBody(templates[templateName].body);
+    const templateId = e.target.value;
+    setSelectedTemplate(templateId);
+
+    if (templateId) {
+      const template = templates.find(t => t.id === templateId);
+      if (template) {
+        setSubject(template.subject);
+        setBody(template.body);
+      }
     } else {
       setSubject('');
       setBody('');
@@ -114,7 +128,15 @@ const EmailComposerModal = ({ isOpen, onClose, contact, logSystemActivity }) => 
 
           {/* To Field (Read Only) */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">To</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">To</label>
+              <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="text-xs text-indigo-600 font-medium hover:underline"
+              >
+                {showAdvanced ? 'Hide CC/BCC' : 'Cc / Bcc'}
+              </button>
+            </div>
             <input
               type="text"
               readOnly
@@ -123,18 +145,46 @@ const EmailComposerModal = ({ isOpen, onClose, contact, logSystemActivity }) => 
             />
           </div>
 
+          {/* Advanced Fields (CC/BCC) */}
+          {showAdvanced && (
+            <div className="grid grid-cols-2 gap-4 pt-1 animate-fade-in">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Cc</label>
+                <input
+                  type="text"
+                  value={cc}
+                  onChange={(e) => setCc(e.target.value)}
+                  disabled={isSending}
+                  placeholder="cc@example.com"
+                  className="w-full text-sm border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Bcc</label>
+                <input
+                  type="text"
+                  value={bcc}
+                  onChange={(e) => setBcc(e.target.value)}
+                  disabled={isSending}
+                  placeholder="bcc@example.com"
+                  className="w-full text-sm border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Quick Templates */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Quick Templates</label>
             <select
               value={selectedTemplate}
               onChange={handleTemplateChange}
-              disabled={isSending}
+              disabled={isSending || isLoadingTemplates}
               className="w-full text-sm border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white"
             >
-              <option value="">Select a template...</option>
-              {Object.keys(templates).map(name => (
-                <option key={name} value={name}>{name}</option>
+              <option value="">{isLoadingTemplates ? 'Loading templates...' : 'Select a template...'}</option>
+              {templates.map(template => (
+                <option key={template.id} value={template.id}>{template.name}</option>
               ))}
             </select>
           </div>
