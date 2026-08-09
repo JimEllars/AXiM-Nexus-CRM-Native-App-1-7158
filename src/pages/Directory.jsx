@@ -248,6 +248,36 @@ const Directory = () => {
             <span className="hidden sm:inline">Export CSV</span>
           </button>
           <button
+            onClick={async (e) => {
+              const btn = e.currentTarget;
+              if (btn.disabled) return;
+              btn.disabled = true;
+              const originalText = btn.querySelector('span').innerText;
+              btn.querySelector('span').innerText = 'Starting...';
+              notificationService.notifyInfo('Enrichment batch started in the background.');
+              try {
+                const res = await fetch('/api/enrichment/process', { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                  notificationService.notifySuccess(`Enrichment sweep finished: ${data.processed} processed.`);
+                } else {
+                  notificationService.notifyError(data.error || 'Sweep failed.');
+                }
+              } catch(err) {
+                notificationService.notifyError('Network error starting sweep.');
+              } finally {
+                setTimeout(() => {
+                  btn.disabled = false;
+                  btn.querySelector('span').innerText = originalText;
+                }, 2000); // basic debounce
+              }
+            }}
+            className="bg-white border border-slate-200 text-indigo-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-50 transition-all flex items-center space-x-2 shrink-0 disabled:opacity-50"
+          >
+            <SafeIcon icon={FiIcons.FiDatabase} />
+            <span className="hidden sm:inline">Run Enrichment Sweep</span>
+          </button>
+          <button
             onClick={() => setIsCsvImportModalOpen(true)}
             className="bg-white border border-slate-200 text-slate-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0"
           >
@@ -386,6 +416,11 @@ const Directory = () => {
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase ${account && account.company_name ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
                             {account && account.company_name ? 'B2B' : 'B2C'}
                           </span>
+                          {contact.enrichment_status === 'pending' && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
+                              Pending
+                            </span>
+                          )}
                         </div>
                         {account && <div className="text-[11px] text-slate-500 font-medium">{account.company_name}</div>}
                       </div>
