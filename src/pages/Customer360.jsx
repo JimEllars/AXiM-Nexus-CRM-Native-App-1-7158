@@ -119,7 +119,7 @@ const { loading, error } = useCrm();
         </button>
         <div className="flex w-full sm:w-auto space-x-3">
           <button
-            onClick={() => notificationService.notifyInfo('Ground Game sync API endpoint pending.')}
+            onClick={() => fetch('/api/sync/groundgame', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(contact) }).then(res => { if(res.ok) notificationService.notifySuccess('Record synced to Ground Game.'); else throw new Error(); }).catch(e => notificationService.notifyError('Failed to sync to Ground Game.'))}
             className="flex-1 sm:flex-none bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center justify-center space-x-2"
           >
             <SafeIcon icon={FiIcons.FiRefreshCw} />
