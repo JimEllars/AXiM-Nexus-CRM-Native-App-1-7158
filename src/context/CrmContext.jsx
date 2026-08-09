@@ -27,6 +27,16 @@ export const CrmProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
   const [isSweeping, setIsSweeping] = useState(false);
   const [isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen] = useState(false);
+  const [pipelineStages, setPipelineStages] = useState({
+    b2b: {
+      label: 'Commercial B2B',
+      stages: ['PROSPECT', 'TECHNICAL_REVIEW', 'CONTRACT_NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST']
+    },
+    b2c: {
+      label: 'Consumer B2C',
+      stages: ['NEW_LEAD', 'CONTACTED', 'APPOINTMENT_SET', 'CLOSED_WON', 'CLOSED_LOST']
+    }
+  });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('axim_dark_mode');
     return saved !== null ? JSON.parse(saved) : true;
@@ -427,7 +437,7 @@ export const CrmProvider = ({ children }) => {
 
   return (
     <CrmContext.Provider value={{
-      activeOrganization, session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
+      activeOrganization, session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping, pipelineStages, setPipelineStages,
       addDeal, updateDeal, addActivity, logSystemActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => {
         const newValue = !prev;
         localStorage.setItem('axim_dark_mode', JSON.stringify(newValue));

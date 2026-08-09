@@ -14,7 +14,8 @@ import { activityService } from '../services/activityService';
 import { notificationService } from '../services/notificationService';
 
 const Directory = () => {
-  const { accounts } = useCrm();
+  const { accounts, session } = useCrm();
+  const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com' || session?.user?.email === 'james.ellars@axim.us.com';
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCsvImportModalOpen, setIsCsvImportModalOpen] = useState(false);
@@ -200,7 +201,7 @@ const Directory = () => {
           </select>
 
 
-          {selectedIds.length > 0 && (
+          {isAdmin && selectedIds.length > 0 && (
             <button
               onClick={async () => {
                 const idsToDelete = [...selectedIds];
@@ -220,7 +221,7 @@ const Directory = () => {
               <span className="hidden sm:inline">Delete Selected ({selectedIds.length})</span>
             </button>
           )}
-          {selectedIds.length > 0 && (
+          {isAdmin && selectedIds.length > 0 && (
 
             <button
               onClick={async () => {
@@ -247,7 +248,7 @@ const Directory = () => {
             <SafeIcon icon={FiIcons.FiDownloadCloud} />
             <span className="hidden sm:inline">Export CSV</span>
           </button>
-          <button
+          {isAdmin && (<button
             onClick={async (e) => {
               const btn = e.currentTarget;
               if (btn.disabled) return;
@@ -276,14 +277,14 @@ const Directory = () => {
           >
             <SafeIcon icon={FiIcons.FiDatabase} />
             <span className="hidden sm:inline">Run Enrichment Sweep</span>
-          </button>
-          <button
+          </button>)}
+          {isAdmin && (<button
             onClick={() => setIsCsvImportModalOpen(true)}
             className="bg-white border border-slate-200 text-slate-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0"
           >
             <SafeIcon icon={FiIcons.FiUpload} />
             <span className="hidden sm:inline">Import CSV</span>
-          </button>
+          </button>)}
           <button 
             onClick={() => setIsModalOpen(true)}
             className="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-indigo-100 shrink-0"
@@ -363,7 +364,7 @@ const Directory = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-black tracking-widest text-slate-400">
-              <th className="p-4 w-12">
+              {isAdmin && (<th className="p-4 w-12">
                 <input
                   type="checkbox"
                   className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
@@ -379,7 +380,7 @@ const Directory = () => {
                   }}
                   checked={localContacts.length > 0 && localContacts.every(c => selectedIds.includes(c.id))}
                 />
-              </th>
+              </th>)}
               <th className="p-4">Name / Entity</th>
               <th className="p-4">Type</th>
               <th className="p-4">Contact Info</th>
@@ -391,7 +392,7 @@ const Directory = () => {
               const account = accounts.find(a => a.id === contact.account_id);
               return (
                 <tr key={contact.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="p-4">
+                  {isAdmin && (<td className="p-4">
                     <input
                       type="checkbox"
                       className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
@@ -404,7 +405,7 @@ const Directory = () => {
                         }
                       }}
                     />
-                  </td>
+                  </td>)}
                   <td className="p-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm border border-slate-200">
@@ -491,7 +492,7 @@ const Directory = () => {
       />
 
 
-      {selectedIds.length > 0 && (
+      {isAdmin && selectedIds.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 transform transition-transform duration-300 translate-y-0">
           <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-3">
