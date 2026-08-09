@@ -34,6 +34,7 @@ export const CrmProvider = ({ children }) => {
   
   const [workflows, setWorkflows] = useState([]);
   const [session, setSession] = useState(null);
+  const [activeOrganization] = useState({ id: "axim-internal-001", name: "AXiM Nexus" });
   const [authLoading, setAuthLoading] = useState(true);
   const [realtimeStatus, setRealtimeStatus] = useState('connected');
   const [enrichmentQueue, setEnrichmentQueue] = useState(enrichmentService.getQueue());
@@ -426,7 +427,7 @@ export const CrmProvider = ({ children }) => {
 
   return (
     <CrmContext.Provider value={{
-      session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
+      activeOrganization, session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping,
       addDeal, updateDeal, addActivity, logSystemActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => {
         const newValue = !prev;
         localStorage.setItem('axim_dark_mode', JSON.stringify(newValue));

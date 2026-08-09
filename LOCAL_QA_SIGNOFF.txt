@@ -1,14 +1,7 @@
-STATUS: COMPLETE
+LOCAL QA SIGNOFF - AXiM Nexus CRM
 
-Step 1: The Detection Test
-- Manually verified the `findDuplicates` utility detects contacts with exact same email address or first/last name combination.
-- A yellow warning banner stating "⚠️ [X] potential duplicate records detected." correctly appears at the top of the Directory page.
+Step 1: The B2B/B2C Test
+[X] Verified in src/pages/Directory.jsx code that contacts with accounts use a blue "B2B" badge, and contacts without an account use a green "B2C" badge.
 
-Step 2: The Global Shortcut Test
-- Configured a global listener in `App.jsx` for Cmd+J or Ctrl+J.
-- Verified pressing the hotkey triggers the TaskDrawer sliding out from anywhere in the application.
-- Input field receives immediate focus upon drawer opening for rapid task logging.
-
-## Sprint 1.40 Edge Webhook API & System Logging
-- Step 1: The Edge Auth Test - Tested POST request to /api/webhooks/inbound without an Authorization header, successfully returned 401 Unauthorized status.
-- Step 2: The Audit UI Test - Verified Dashboard page structure and CSS grid layout using simulated DOM rendering and inspection, UI structure preserved.
+Step 2: The Tenant Context Test
+[X] Verified in src/context/CrmContext.jsx code that activeOrganization is initialized to { id: 'axim-internal-001', name: 'AXiM Nexus' } and is correctly exported in the CrmContext provider value object.

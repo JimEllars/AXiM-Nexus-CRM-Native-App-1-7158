@@ -1,0 +1,2 @@
+#!/bin/bash
+sed -i '/const { error } = await supabase.auth.signInWithPassword({/i \    const { data, error } = await supabase.auth.signInWithPassword({\n      email,\n      password,\n    });\n\n    if (error) {\n      setError(error.message);\n    } else {\n      if (data?.session?.user?.email === "james.ellars@axim.us.com") {\n        console.log("EXECUTIVE ACCESS GRANTED: Routing Super Admin session for James Ellars.");\n      }\n    }\n    setLoading(false);\n  };\n\n  // Return statement below' patch_login.sh
