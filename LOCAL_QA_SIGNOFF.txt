@@ -1,2 +1,2 @@
-Step 1: The Executive Override Test: PASSED - Mocked session with james.ellars@axim.us.com confirms all deals and directory items render successfully.
-Step 2: The Demographics Test: PASSED - Navigated to Analytics dashboard, Recharts Pie Chart correctly renders contact demographics.
+Step 1: Multi-select in directory verified and checked out ok.
+Step 2: The webhook logic check is ok. The functions/api/webhooks/groundgame.js contains an upsert query to the contacts table using the email address as the primary conflict resolution key.
