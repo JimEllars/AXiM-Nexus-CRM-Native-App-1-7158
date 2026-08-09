@@ -7,21 +7,13 @@ import * as FiIcons from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreateDealModal from '../components/modals/CreateDealModal';
 import DealDetailModal from '../components/modals/DealDetailModal';
+import PipelineSettingsModal from '../components/modals/PipelineSettingsModal';
 import { dealService } from '../services/dealService';
 import { activityService } from '../services/activityService';
 import { supabase, logToAsguardDLQ } from '../lib/supabase';
 
 
-const PIPELINE_CONFIGS = {
-  b2b: {
-    label: 'Commercial B2B',
-    stages: ['PROSPECT', 'TECHNICAL_REVIEW', 'CONTRACT_NEGOTIATION', 'CLOSED_WON', 'CLOSED_LOST']
-  },
-  b2c: {
-    label: 'Consumer B2C',
-    stages: ['NEW_LEAD', 'CONTACTED', 'APPOINTMENT_SET', 'CLOSED_WON', 'CLOSED_LOST']
-  }
-};
+
 
 const StageColumn = ({ stage, deals, onDrop, onDragOver, onDealClick, movingDealIds, onDragEnterDeal }) => {
   const totalValue = deals.reduce((sum, d) => sum + d.amount, 0);
@@ -119,7 +111,7 @@ const DealCard = ({ deal, index, onClick, isMoving, onDragEnter }) => {
 };
 
 const Pipeline = () => {
-  const { deals, moveDealStage, campaigns, loading, error, realtimeStatus, session } = useCrm();
+  const { deals, moveDealStage, campaigns, loading, error, realtimeStatus, session, pipelineStages: PIPELINE_CONFIGS } = useCrm();
   const [localDeals, setLocalDeals] = useState(deals);
   const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com' || session?.user?.email === 'james.ellars@axim.us.com'; // rudimentary admin check
 
@@ -189,6 +181,7 @@ const Pipeline = () => {
 
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id || 'all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [dragOverDealId, setDragOverDealId] = useState(null);
   const [inspectedDeal, setInspectedDeal] = useState(null);
 
@@ -344,6 +337,7 @@ const Pipeline = () => {
           </button>
         </div>
         <CreateDealModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <PipelineSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       </div>
     );
   }
@@ -408,6 +402,16 @@ const Pipeline = () => {
           </div>
         </div>
         <div className="flex lg:justify-end space-x-3">
+
+          {isAdmin && (
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 px-3 py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center"
+              title="Pipeline Settings"
+            >
+              <SafeIcon icon={FiIcons.FiSettings} />
+            </button>
+          )}
           <button 
             onClick={() => setIsModalOpen(true)}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 shadow-lg shadow-indigo-100"
@@ -452,6 +456,7 @@ const Pipeline = () => {
       </div>
 
       <CreateDealModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <PipelineSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       <DealDetailModal deal={inspectedDeal} isOpen={!!inspectedDeal} onClose={() => setInspectedDeal(null)} />
     </div>
   );

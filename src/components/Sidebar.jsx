@@ -2,8 +2,11 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
+import { useCrm } from '../context/CrmContext';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
+  const { session } = useCrm();
+  const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com' || session?.user?.email === 'james.ellars@axim.us.com';
   const navItems = [
     { name: 'Dashboard', path: '/', icon: FiIcons.FiLayout },
     { name: 'Swarm (Tasks)', path: '/swarm', icon: FiIcons.FiZap },
@@ -12,7 +15,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Accounts', path: '/accounts', icon: FiIcons.FiBriefcase },
     { name: 'Campaigns', path: '/campaigns', icon: FiIcons.FiTarget },
     { name: 'Analytics', path: '/analytics', icon: FiIcons.FiPieChart },
-    { name: 'Onyx Core', path: '/settings', icon: FiIcons.FiCpu },
+    { name: 'Onyx Core', path: '/settings', icon: FiIcons.FiCpu, adminOnly: true },
   ];
 
   return (
@@ -46,7 +49,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
 
         <nav className="flex-1 px-4 space-y-1 mt-2 overflow-y-auto custom-scrollbar">
-          {navItems.map((item) => (
+          {navItems.filter(item => !item.adminOnly || isAdmin).map((item) => (
             <NavLink
               key={item.name}
               to={item.path}

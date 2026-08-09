@@ -42,6 +42,7 @@ const DashboardMetrics = React.memo(({ loading, totalValue, pendingTasksCount, c
 
 const Dashboard = () => {
   const { deals, contacts, activities, runOnyxSweep, isSweeping, tasks, loading, session, enrichmentQueue } = useCrm();
+  const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com' || session?.user?.email === 'james.ellars@axim.us.com';
   const navigate = useNavigate();
 
 
@@ -263,35 +264,59 @@ const Dashboard = () => {
         </div>
 
         {/* Recent System Events - Audit Log Scaffolding */}
-        <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 col-span-1 lg:col-span-3">
-          <h3 className="font-black text-slate-900 mb-6 uppercase tracking-widest text-xs flex items-center justify-between">
-            <span>Recent System Events</span>
-            <SafeIcon icon={FiIcons.FiActivity} className="text-indigo-600" />
-          </h3>
-          <div className="space-y-4">
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
-              <div>
-                <div className="text-xs font-black text-slate-800">Lead ingested</div>
-                <div className="text-[9px] font-black text-slate-400 mt-1">Webhook Processor</div>
+        {isAdmin ? (
+          <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 col-span-1 lg:col-span-3">
+            <h3 className="font-black text-slate-900 mb-6 uppercase tracking-widest text-xs flex items-center justify-between">
+              <span>Recent System Events</span>
+              <SafeIcon icon={FiIcons.FiActivity} className="text-indigo-600" />
+            </h3>
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
+                <div>
+                  <div className="text-xs font-black text-slate-800">Lead ingested</div>
+                  <div className="text-[9px] font-black text-slate-400 mt-1">Webhook Processor</div>
+                </div>
+                <div className="text-[10px] uppercase font-black px-2 py-1 rounded bg-slate-200 text-slate-700">Just now</div>
               </div>
-              <div className="text-[10px] uppercase font-black px-2 py-1 rounded bg-slate-200 text-slate-700">Just now</div>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
-              <div>
-                <div className="text-xs font-black text-slate-800">Swarms deployed</div>
-                <div className="text-[9px] font-black text-slate-400 mt-1">Onyx Mk3</div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
+                <div>
+                  <div className="text-xs font-black text-slate-800">Swarms deployed</div>
+                  <div className="text-[9px] font-black text-slate-400 mt-1">Onyx Mk3</div>
+                </div>
+                <div className="text-[10px] uppercase font-black px-2 py-1 rounded bg-slate-200 text-slate-700">2 mins ago</div>
               </div>
-              <div className="text-[10px] uppercase font-black px-2 py-1 rounded bg-slate-200 text-slate-700">2 mins ago</div>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
-              <div>
-                <div className="text-xs font-black text-slate-800">Duplicate resolution completed</div>
-                <div className="text-[9px] font-black text-slate-400 mt-1">Data Hygiene Engine</div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group">
+                <div>
+                  <div className="text-xs font-black text-slate-800">Duplicate resolution completed</div>
+                  <div className="text-[9px] font-black text-slate-400 mt-1">Data Hygiene Engine</div>
+                </div>
+                <div className="text-[10px] uppercase font-black px-2 py-1 rounded bg-slate-200 text-slate-700">15 mins ago</div>
               </div>
-              <div className="text-[10px] uppercase font-black px-2 py-1 rounded bg-slate-200 text-slate-700">15 mins ago</div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 col-span-1 lg:col-span-3">
+            <h3 className="font-black text-slate-900 mb-6 uppercase tracking-widest text-xs flex items-center justify-between">
+              <span>My Daily Tasks</span>
+              <SafeIcon icon={FiIcons.FiCheckSquare} className="text-emerald-600" />
+            </h3>
+            <div className="space-y-4">
+              {pendingTasks.length > 0 ? pendingTasks.slice(0, 5).map(task => (
+                <div key={task.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group cursor-pointer hover:border-indigo-200 transition-colors" onClick={() => navigate('/swarm')}>
+                  <div>
+                    <div className="text-xs font-black text-slate-800 group-hover:text-indigo-600 transition-colors">{task.title}</div>
+                    <div className="text-[9px] font-black text-slate-400 mt-1">{task.type.replace('_', ' ')}</div>
+                  </div>
+                  <div className={`text-[10px] uppercase font-black px-2 py-1 rounded ${task.priority === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'}`}>
+                    {task.priority}
+                  </div>
+                </div>
+              )) : (
+                <div className="p-4 text-center text-slate-400 text-xs italic">You have no pending tasks for today. Great job!</div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
