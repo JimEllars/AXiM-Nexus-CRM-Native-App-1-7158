@@ -8,3 +8,7 @@ Step 2: The Global Shortcut Test
 - Configured a global listener in `App.jsx` for Cmd+J or Ctrl+J.
 - Verified pressing the hotkey triggers the TaskDrawer sliding out from anywhere in the application.
 - Input field receives immediate focus upon drawer opening for rapid task logging.
+
+## Sprint 1.40 Edge Webhook API & System Logging
+- Step 1: The Edge Auth Test - Tested POST request to /api/webhooks/inbound without an Authorization header, successfully returned 401 Unauthorized status.
+- Step 2: The Audit UI Test - Verified Dashboard page structure and CSS grid layout using simulated DOM rendering and inspection, UI structure preserved.
