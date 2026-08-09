@@ -1,2 +1,10 @@
-Step 1: The Presence Test: Verified by inspecting CrmContext, TopNav, and AgentProfileDrawer for correct supabase realtime tracking state logic. Avatar color updates correctly between green (online) and gray (offline).
-Step 2: The Export Test: Verified that Directory.jsx's handleExportCSV builds a standard CSV with correct headers and blob string generation without making an edge API call, matching the provided spec.
+STATUS: COMPLETE
+
+Step 1: The Detection Test
+- Manually verified the `findDuplicates` utility detects contacts with exact same email address or first/last name combination.
+- A yellow warning banner stating "⚠️ [X] potential duplicate records detected." correctly appears at the top of the Directory page.
+
+Step 2: The Global Shortcut Test
+- Configured a global listener in `App.jsx` for Cmd+J or Ctrl+J.
+- Verified pressing the hotkey triggers the TaskDrawer sliding out from anywhere in the application.
+- Input field receives immediate focus upon drawer opening for rapid task logging.

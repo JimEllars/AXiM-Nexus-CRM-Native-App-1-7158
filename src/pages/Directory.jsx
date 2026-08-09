@@ -6,6 +6,8 @@ import * as FiIcons from 'react-icons/fi';
 import CreateContactModal from '../components/modals/CreateContactModal';
 import BulkAddContactsModal from "../components/modals/BulkAddContactsModal";
 import CsvImportModal from "../components/modals/CsvImportModal";
+import MergeDuplicateModal from "../components/modals/MergeDuplicateModal";
+import { findDuplicates } from "../utils/dataHygiene";
 // from '../components/modals/BulkAddContactsModal';
 import { useDebounce } from '../hooks/useDebounce';
 import { contactService } from '../services/contactService';
@@ -22,6 +24,8 @@ const Directory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const [statusFilter, setStatusFilter] = useState('All');
+  const [duplicateGroups, setDuplicateGroups] = useState([]);
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
 
   const [localContacts, setLocalContacts] = useState([]);
   const [page, setPage] = useState(1);
@@ -32,6 +36,12 @@ const Directory = () => {
   // Quick Add State
   const [quickAdd, setQuickAdd] = useState({ firstName: '', lastName: '', email: '', phone: '' });
   const [quickAddErrors, setQuickAddErrors] = useState({ email: false, phone: false });
+
+  useEffect(() => {
+    const dups = findDuplicates(localContacts);
+    setDuplicateGroups(dups);
+  }, [localContacts]);
+
   const [isQuickAdding, setIsQuickAdding] = useState(false);
 
   const handleQuickAdd = async (e) => {
@@ -57,7 +67,7 @@ const Directory = () => {
 
     if (hasError) {
       setQuickAddErrors(errors);
-      toast.warning('Please correct the highlighted fields before submitting.');
+      notificationService.notifyWarning('Please correct the highlighted fields before submitting.');
       return;
     }
 
@@ -128,7 +138,7 @@ const Directory = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const fetchContacts = async () => {
-    setIsLoading(true);
+    // setIsLoading(true);
     try {
       const { data, count } = await contactService.getAll(page, pageSize, debouncedSearchTerm, sortConfig, statusFilter);
       setLocalContacts(data);
@@ -136,7 +146,7 @@ const Directory = () => {
     } catch (error) {
       console.error('Error fetching contacts:', error);
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   };
 
@@ -263,6 +273,22 @@ const Directory = () => {
           </button>
         </div>
       </div>
+
+
+        {duplicateGroups.length > 0 && (
+          <div className="bg-amber-100 border border-amber-300 text-amber-800 px-4 py-3 rounded-lg mb-6 flex justify-between items-center">
+            <div className="flex items-center">
+              <SafeIcon icon={FiIcons.FiAlertTriangle} className="mr-2" />
+              <span>⚠️ {duplicateGroups.length} potential duplicate records detected.</span>
+            </div>
+            <button
+              onClick={() => setIsMergeModalOpen(true)}
+              className="px-4 py-2 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-lg text-sm font-semibold transition-colors"
+            >
+              Resolve Duplicates
+            </button>
+          </div>
+        )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 p-4">
         <form onSubmit={handleQuickAdd} className="flex flex-col md:flex-row items-center gap-4">
@@ -424,6 +450,17 @@ const Directory = () => {
       <CreateContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <BulkAddContactsModal isOpen={isBulkModalOpen} onClose={() => setIsBulkModalOpen(false)} />
       <CsvImportModal isOpen={isCsvImportModalOpen} onClose={() => setIsCsvImportModalOpen(false)} />
+
+      <MergeDuplicateModal
+        isOpen={isMergeModalOpen}
+        onClose={() => setIsMergeModalOpen(false)}
+        duplicateGroups={duplicateGroups}
+        onMergeComplete={() => {
+            notificationService.notifySuccess('Records successfully merged.');
+            fetchContacts();
+        }}
+      />
+
     </div>
   );
 };
