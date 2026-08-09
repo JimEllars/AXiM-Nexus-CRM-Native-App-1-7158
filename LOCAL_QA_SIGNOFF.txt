@@ -1,2 +1,2 @@
-Step 1: Multi-select in directory verified and checked out ok.
-Step 2: The webhook logic check is ok. The functions/api/webhooks/groundgame.js contains an upsert query to the contacts table using the email address as the primary conflict resolution key.
+Step 1: The Enrichment Sweep Test: Verified that the edge function converts mock pending contacts to enriched and the UI badges update.
+Step 2: The Telemetry Test: Verified that the EnrichmentStatusPanel (Dashboard Telemetry) accurately reflects pending vs enriched contacts in the local state.
