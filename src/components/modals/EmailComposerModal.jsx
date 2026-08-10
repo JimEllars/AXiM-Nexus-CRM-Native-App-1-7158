@@ -12,6 +12,42 @@ const EmailComposerModal = ({ isOpen, onClose, contact, logSystemActivity }) => 
   const [bcc, setBcc] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateAI = async () => {
+    const aiPrompt = window.prompt("What should this email be about? (e.g. follow up on yesterday's meeting)");
+    if (!aiPrompt) return;
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/ai/draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ prompt: aiPrompt })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate draft');
+      }
+
+      const data = await response.json();
+      if (data.text) {
+        setBody(data.text);
+        notificationService.notifySuccess('AI Draft generated successfully');
+      } else {
+         throw new Error(data.error || 'Empty response');
+      }
+    } catch (error) {
+      console.error('AI Generation error:', error);
+      notificationService.notifyError('Failed to generate AI draft. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [templates, setTemplates] = useState([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
@@ -179,10 +215,11 @@ const EmailComposerModal = ({ isOpen, onClose, contact, logSystemActivity }) => 
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Quick Templates</label>
               <button
                 type="button"
-                onClick={() => notificationService.notifyInfo('AI Drafter endpoint pending.')}
+                onClick={handleGenerateAI}
+                disabled={isGenerating}
                 className="text-xs flex items-center space-x-1 text-indigo-600 font-bold hover:text-indigo-800 transition-colors"
               >
-                <span>✨ Generate with AI</span>
+                <span>{isGenerating ? '✨ Generating...' : '✨ Generate with AI'}</span>
               </button>
             </div>
             <select

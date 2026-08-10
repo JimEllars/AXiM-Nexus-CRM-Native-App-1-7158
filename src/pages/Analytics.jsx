@@ -207,7 +207,7 @@ const Analytics = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
       {/* Existing Demographics Pie Chart */}
       <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm flex flex-col h-96">

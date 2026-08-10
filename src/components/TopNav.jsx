@@ -142,7 +142,7 @@ const TopNav = ({ toggleSidebar }) => {
 
   return (
     <>
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-10 w-full flex-shrink-0">
+    <header className="h-auto min-h-[4rem] bg-white border-b border-slate-200 flex flex-wrap sm:flex-nowrap items-center justify-between px-4 lg:px-8 py-2 z-10 w-full flex-shrink-0 gap-2">
       <div className="flex items-center space-x-4 flex-1">
         <button
           onClick={toggleSidebar}
@@ -150,7 +150,7 @@ const TopNav = ({ toggleSidebar }) => {
         >
           <SafeIcon icon={FiIcons.FiMenu} className="text-2xl" />
         </button>
-                <div className="relative w-full max-w-md hidden sm:block" ref={searchRef}>
+                <div className="relative w-full max-w-md w-full md:w-auto" ref={searchRef}>
           <SafeIcon icon={FiIcons.FiSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
@@ -264,7 +264,7 @@ const TopNav = ({ toggleSidebar }) => {
           )}
         </div>
         <div className="flex items-center space-x-3 pl-4 lg:pl-6 border-l border-slate-200 cursor-pointer group" onClick={() => setIsAgentDrawerOpen(true)}>
-          <div className="text-right hidden sm:block">
+          <div className="text-right w-full md:w-auto">
             <p className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">Internal Admin</p>
             <p className="text-xs text-slate-500 font-mono">axim_internal_admin</p>
           </div>
