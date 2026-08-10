@@ -390,8 +390,8 @@ const Directory = () => {
                 />
               </th>)}
               <th className="p-4">Name / Entity</th>
-              <th className="p-4">Type</th>
-              <th className="p-4">Contact Info</th>
+              <th className="p-4 hidden md:table-cell">Type</th>
+              <th className="p-4 hidden md:table-cell">Contact Info</th>
               <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -435,12 +435,12 @@ const Directory = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 hidden md:table-cell">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase ${contact.type === 'B2B_LEAD' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
                       {contact.type.replace('_', ' ')}
                     </span>
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 hidden md:table-cell">
                     <div className="text-xs text-slate-600 flex flex-col space-y-1">
                       <span className="flex items-center space-x-2"><SafeIcon icon={FiIcons.FiMail} className="text-slate-400 text-[10px]"/> <span className="font-mono">{contact.email}</span></span>
                       <span className="flex items-center space-x-2"><SafeIcon icon={FiIcons.FiPhone} className="text-slate-400 text-[10px]"/> <span className="font-mono">{contact.phone}</span></span>
