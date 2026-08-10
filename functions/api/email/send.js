@@ -1,35 +1,41 @@
+import { createClient } from '@supabase/supabase-js';
+
+const jsonResponse = (body, status) => new Response(JSON.stringify(body), {
+  status,
+  headers: { 'Content-Type': 'application/json' }
+});
+
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
+    const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+    const authorization = request.headers.get('Authorization');
 
-    const authHeader = request.headers.get('Authorization');
-    const secret = env.NEXUS_API_SECRET;
+    if (!supabaseUrl || !supabaseAnonKey || !authorization?.startsWith('Bearer ')) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
 
-    // If the secret is set, require it
-    if (secret && authHeader !== `Bearer ${secret}`) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+    const { error: authError } = await supabase.auth.getUser(authorization.slice(7));
+
+    if (authError) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
     const body = await request.json();
     const { to, subject, body: emailBody } = body;
 
     if (!to || !subject || !emailBody) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse({ error: 'Missing required fields' }, 400);
     }
 
     const resendApiKey = env.EMAIL_PROVIDER_API_KEY;
 
     if (!resendApiKey) {
-      return new Response(JSON.stringify({ error: 'Missing EMAIL_PROVIDER_API_KEY' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse({ error: 'Missing EMAIL_PROVIDER_API_KEY' }, 503);
     }
 
     const res = await fetch('https://api.resend.com/emails', {
@@ -52,17 +58,12 @@ export async function onRequestPost(context) {
        throw new Error(data.message || 'Failed to send email via Resend');
     }
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       message: 'Email dispatched successfully',
       message_id: data.id
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    }, 200);
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error('Email delivery failed:', error);
+    return jsonResponse({ error: 'Email delivery failed' }, 500);
   }
 }

@@ -33,9 +33,11 @@ Copy `.env.example` to `.env` and set values:
    - `VITE_CRM_PUBLIC_URL=https://axim-nexus-crm-native-app-1-7158.pages.dev`
 4. Add these **Pages Function secrets**:
    - `WEBHOOK_SECRET` (a random value held only by AXiM integrations)
-   - `SUPABASE_SERVICE_ROLE_KEY` (never expose as a `VITE_` variable)
    - `AXIM_ORGANIZATION_ID` (the AXiM organization UUID in Supabase)
-5. Deploy:
+   - `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY` (never expose a service-role key as a `VITE_` variable)
+   - `EMAIL_PROVIDER_API_KEY` before enabling email delivery
+5. The inbound Function uses `SUPABASE_URL` when supplied, otherwise it uses the existing `VITE_SUPABASE_URL` Pages variable. Configure `SUPABASE_URL` as a runtime variable when possible.
+6. Deploy:
    ```bash
    npm run cf:deploy -- --project-name=<your-pages-project-name>
    ```
@@ -51,3 +53,5 @@ Copy `.env.example` to `.env` and set values:
 - SPA route fallback is configured via `public/_redirects` (`/* /index.html 200`).
 - Cloudflare analytics and telemetry only run when corresponding env vars are set.
 - Complete the required Supabase tenant/RLS setup and Mr. Ellars owner bootstrap in [`docs/internal-launch.md`](docs/internal-launch.md) before production activation.
+- `POST /api/webhooks/groundgame` is retired; integrations must use `/api/webhooks/inbound`. The outbound Ground Game sync control remains unavailable until a real AXiM-controlled destination is configured.
+- Email delivery and enrichment sweeps require the current operator's Supabase access token; unauthenticated browser requests are rejected.

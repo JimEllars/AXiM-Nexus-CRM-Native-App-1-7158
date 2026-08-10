@@ -12,6 +12,7 @@ import { contactService } from '../services/contactService';
 import { enrichmentService } from '../services/enrichmentService';
 import { activityService } from '../services/activityService';
 import { notificationService } from '../services/notificationService';
+import { supabase } from '../lib/supabase';
 
 const Directory = () => {
   const { accounts, session } = useCrm();
@@ -257,7 +258,14 @@ const Directory = () => {
               btn.querySelector('span').innerText = 'Starting...';
               notificationService.notifyInfo('Enrichment batch started in the background.');
               try {
-                const res = await fetch('/api/enrichment/process', { method: 'POST' });
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session?.access_token) {
+                  throw new Error('You must be signed in to run enrichment.');
+                }
+                const res = await fetch('/api/enrichment/process', {
+                  method: 'POST',
+                  headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
                 const data = await res.json();
                 if (res.ok) {
                   notificationService.notifySuccess(`Enrichment sweep finished: ${data.processed} processed.`);
