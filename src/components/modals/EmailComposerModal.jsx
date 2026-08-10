@@ -21,12 +21,19 @@ const EmailComposerModal = ({ isOpen, onClose, contact, logSystemActivity }) => 
 
     setIsGenerating(true);
     try {
+      const contactName = contact ? `${contact.first_name || ''} ${contact.last_name || ''}`.trim() : '';
+      const company = contact?.company || '';
+
       const response = await fetch('/api/ai/draft', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ prompt: aiPrompt })
+        body: JSON.stringify({
+          promptContext: aiPrompt,
+          contactName: contactName,
+          company: company
+        })
       });
 
       if (!response.ok) {
@@ -37,6 +44,23 @@ const EmailComposerModal = ({ isOpen, onClose, contact, logSystemActivity }) => 
       if (data.text) {
         setBody(data.text);
         notificationService.notifySuccess('AI Draft generated successfully');
+
+        // Log telemetry
+        if (logSystemActivity) {
+          await logSystemActivity(
+            `AI drafted an email for ${contact.first_name || ''} ${contact.last_name || ''}.`,
+            'AI_DRAFT_GENERATED',
+            { contact_id: contact.id, entity_id: contact.id }
+          );
+        } else {
+          await activityService.create({
+            type: 'AI_DRAFT_GENERATED',
+            description: `AI drafted an email for ${contact.first_name || ''} ${contact.last_name || ''}.`,
+            entity_id: contact.id,
+            contact_id: contact.id,
+            logged_by_agent_id: 'system' // Using system since agent context might not be fully injected here
+          });
+        }
       } else {
          throw new Error(data.error || 'Empty response');
       }

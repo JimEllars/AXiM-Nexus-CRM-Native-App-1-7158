@@ -2,18 +2,18 @@ export async function onRequestPost(context) {
   try {
     const { request, env } = context;
     const body = await request.json();
-    const prompt = body.prompt;
+    const { contactName, company, promptContext } = body;
 
-    if (!prompt) {
-      return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+    if (!promptContext) {
+      return new Response(JSON.stringify({ error: 'Prompt context is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
     const messages = [
-      { role: "system", content: "You are a professional B2B/B2C sales assistant. Write a short, engaging email based on the user's prompt. Do not include subject lines, just the body of the email. Keep it concise." },
-      { role: "user", content: prompt }
+      { role: "system", content: "You are an expert AXiM sales representative drafting a concise, professional email. Do not include subject lines, just the body of the email." },
+      { role: "user", content: `Write an email to ${contactName ? contactName : 'a contact'}${company ? ` at ${company}` : ''} about: ${promptContext}` }
     ];
 
     const response = await env.AI.run('@cf/meta/llama-3-8b-instruct', { messages });
