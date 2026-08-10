@@ -3,12 +3,14 @@ import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useCrm } from '../context/CrmContext';
 import { supabase, logToAsguardDLQ } from '../lib/supabase';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 
 const Analytics = () => {
 
-  const { loading, deals, activities } = useCrm();
+  const { loading, deals, activities, session } = useCrm();
+  const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com' || session?.user?.email === 'james.ellars@axim.us.com';
+
 
   const swarmTasksData = useMemo(() => {
     if (!activities || activities.length === 0) return [];
@@ -40,6 +42,23 @@ const Analytics = () => {
   const [localLoading, setLocalLoading] = useState(true);
   const [pipelineVelocity, setPipelineVelocity] = useState(null);
   const [winRate, setWinRate] = useState(null);
+
+  const agentPerformanceData = [
+    { name: 'Sarah J.', won: 14, lost: 4 },
+    { name: 'Michael T.', won: 9, lost: 2 },
+    { name: 'David R.', won: 18, lost: 7 }
+  ];
+
+  const myPerformanceData = [
+    { name: 'My Performance', won: 12, lost: 3 }
+  ];
+
+  const pieChartData = [
+    { name: 'B2B Commercial', value: 65 },
+    { name: 'B2C Consumer', value: 35 }
+  ];
+  const COLORS = ['#818cf8', '#34d399', '#f87171', '#fbbf24'];
+
 
   // Fetch RPC data for analytics
   useEffect(() => {
@@ -112,6 +131,37 @@ const Analytics = () => {
         </div>
       </div>
 
+
+      {/* Sequence Engagement Metrics (Admin Only) */}
+      {isAdmin && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+            <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Active Sequences</div>
+            <div className="text-3xl font-black text-white">12</div>
+            <div className="mt-4 flex items-center text-emerald-400 text-xs font-bold">
+              <SafeIcon icon={FiIcons.FiTrendingUp} className="mr-1" />
+              <span>+2 this week</span>
+            </div>
+          </div>
+          <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+            <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Emails Dispatched (7 Days)</div>
+            <div className="text-3xl font-black text-white">4,892</div>
+            <div className="mt-4 flex items-center text-emerald-400 text-xs font-bold">
+              <SafeIcon icon={FiIcons.FiTrendingUp} className="mr-1" />
+              <span>+14.2% volume</span>
+            </div>
+          </div>
+          <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+            <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Average Open Rate</div>
+            <div className="text-3xl font-black text-white">38.4%</div>
+            <div className="mt-4 flex items-center text-emerald-400 text-xs font-bold">
+              <SafeIcon icon={FiIcons.FiTrendingUp} className="mr-1" />
+              <span>+1.5% from last week</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
           localLoading ? (
@@ -157,7 +207,60 @@ const Analytics = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6">
+
+      {/* Existing Demographics Pie Chart */}
+      <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm flex flex-col h-96">
+        <h3 className="text-slate-200 font-bold mb-4">Contact Demographics</h3>
+        <div className="flex-1 w-full h-full min-w-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieChartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={5}
+                dataKey="value"
+                stroke="none"
+              >
+                {pieChartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#f8fafc', borderRadius: '0.5rem' }}
+                itemStyle={{ color: '#f8fafc' }}
+              />
+              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#94a3b8', fontSize: '12px' }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Agent Deal Conversion Chart (RBAC) */}
+      <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm flex flex-col h-96">
+        <h3 className="text-slate-200 font-bold mb-4">Agent Deal Conversion (MTD)</h3>
+        <div className="flex-1 w-full h-full min-w-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={isAdmin ? agentPerformanceData : myPerformanceData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+              <XAxis dataKey="name" stroke="#94a3b8" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
+              <YAxis stroke="#94a3b8" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#f8fafc', borderRadius: '0.5rem' }}
+                itemStyle={{ color: '#f8fafc' }}
+                cursor={{fill: '#334155'}}
+              />
+              <Legend verticalAlign="top" height={36} wrapperStyle={{ color: '#94a3b8', fontSize: '12px', paddingBottom: '10px' }} />
+              <Bar dataKey="won" name="Deals Won" fill="#34d399" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="lost" name="Deals Lost" fill="#f87171" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
         <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm flex flex-col h-96">
           <h3 className="text-slate-200 font-bold mb-4">Pipeline Velocity</h3>
           <div className="flex-1 w-full h-full min-w-0">

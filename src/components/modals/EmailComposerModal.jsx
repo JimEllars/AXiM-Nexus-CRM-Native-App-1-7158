@@ -175,7 +175,16 @@ const EmailComposerModal = ({ isOpen, onClose, contact, logSystemActivity }) => 
 
           {/* Quick Templates */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Quick Templates</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Quick Templates</label>
+              <button
+                type="button"
+                onClick={() => notificationService.notifyInfo('AI Drafter endpoint pending.')}
+                className="text-xs flex items-center space-x-1 text-indigo-600 font-bold hover:text-indigo-800 transition-colors"
+              >
+                <span>✨ Generate with AI</span>
+              </button>
+            </div>
             <select
               value={selectedTemplate}
               onChange={handleTemplateChange}
