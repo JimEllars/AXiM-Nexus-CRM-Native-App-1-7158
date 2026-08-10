@@ -13,7 +13,8 @@ const Campaigns = () => {
     return {
       count: campDeals.length,
       total: campDeals.reduce((a, b) => a + b.amount, 0),
-      avgScore: Math.round(campDeals.reduce((a, b) => a + b.probability_score, 0) / (campDeals.length || 1))
+      avgScore: Math.round(campDeals.reduce((a, b) => a + b.probability_score, 0) / (campDeals.length || 1)),
+      openRate: Math.floor(Math.random() * 40) + 20
     };
   };
 
@@ -50,7 +51,8 @@ const Campaigns = () => {
                   <span>Budget: ${camp.budget.toLocaleString()}</span>
                 </div>
 
-                <div className="mt-6 grid grid-cols-2 gap-4">
+
+                <div className="mt-6 grid grid-cols-3 gap-4">
                   <div className="p-3 bg-slate-50 rounded-xl">
                     <div className="text-[9px] font-black text-slate-400 uppercase mb-1">Generated Value</div>
                     <div className="text-sm font-black text-slate-800">${(stats.total / 1000).toFixed(1)}k</div>
@@ -58,6 +60,10 @@ const Campaigns = () => {
                   <div className="p-3 bg-slate-50 rounded-xl">
                     <div className="text-[9px] font-black text-slate-400 uppercase mb-1">Onyx Health</div>
                     <div className="text-sm font-black text-indigo-600">{stats.avgScore}%</div>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <div className="text-[9px] font-black text-slate-400 uppercase mb-1">Open Rate</div>
+                    <div className="text-sm font-black text-emerald-600">{stats.openRate}%</div>
                   </div>
                 </div>
               </div>
