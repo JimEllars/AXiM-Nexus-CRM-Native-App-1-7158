@@ -350,13 +350,19 @@ const Pipeline = () => {
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Deal Progress</h1>
             <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
               <button
-                onClick={() => handleTypeChange('b2b')}
+                onClick={() => {
+                  notificationService.notifyInfo('Pipeline separation coming soon.');
+
+                }}
                 className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${pipelineType === 'b2b' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 {PIPELINE_CONFIGS.b2b.label}
               </button>
               <button
-                onClick={() => handleTypeChange('b2c')}
+                onClick={() => {
+                  notificationService.notifyInfo('Pipeline separation coming soon.');
+
+                }}
                 className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${pipelineType === 'b2c' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 {PIPELINE_CONFIGS.b2c.label}
