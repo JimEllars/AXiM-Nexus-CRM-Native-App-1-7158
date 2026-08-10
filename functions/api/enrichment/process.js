@@ -7,13 +7,25 @@ const jsonResponse = (body, status) => new Response(JSON.stringify(body), {
 
 export async function onRequestPost(context) {
   try {
-    const { env } = context;
+    const { request, env } = context;
+    const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+    const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
+    const supabaseAnonKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+    const authorization = request.headers.get('Authorization');
 
-    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!supabaseUrl || !serviceRoleKey || !supabaseAnonKey || !authorization?.startsWith('Bearer ')) {
       return jsonResponse({ error: 'Supabase credentials not configured' }, 503);
     }
 
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+    const { error: authError } = await authClient.auth.getUser(authorization.slice(7));
+    if (authError) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 

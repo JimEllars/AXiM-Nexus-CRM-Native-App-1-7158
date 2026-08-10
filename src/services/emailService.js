@@ -2,12 +2,17 @@ import { supabase } from '../lib/supabase';
 
 export const emailService = {
   async sendTransactionalEmail(to, subject, body) {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error('You must be signed in to send email.');
+    }
+
     const response = await fetch('/api/email/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // In a real app we'd pass the authorization header here if available from context
-        'Authorization': `Bearer ${import.meta.env.VITE_NEXUS_API_SECRET || 'dev-secret'}`
+        'Authorization': `Bearer ${session.access_token}`
       },
       body: JSON.stringify({
         to,

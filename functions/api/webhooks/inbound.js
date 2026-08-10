@@ -12,8 +12,10 @@ export async function onRequestPost(context) {
   try {
     const { request, env } = context;
     const authHeader = request.headers.get('Authorization');
+    const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+    const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
 
-    if (!env.WEBHOOK_SECRET || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY || !env.AXIM_ORGANIZATION_ID) {
+    if (!env.WEBHOOK_SECRET || !supabaseUrl || !serviceRoleKey || !env.AXIM_ORGANIZATION_ID) {
       return jsonResponse({ error: 'Webhook is not configured.' }, 503);
     }
 
@@ -39,7 +41,7 @@ export async function onRequestPost(context) {
       return jsonResponse({ error: 'first_name, last_name, email, and a valid B2B_LEAD or B2C_LEAD type are required.' }, 400);
     }
 
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 

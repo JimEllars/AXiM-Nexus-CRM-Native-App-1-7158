@@ -303,7 +303,10 @@ const { loading, error } = useCrm();
 
                     setIsSending(true);
                     try {
-                      await emailService.sendTransactionalEmail(id, subject, body);
+                      if (!contact.email) {
+                        throw new Error('This contact does not have an email address.');
+                      }
+                      await emailService.sendTransactionalEmail(contact.email, subject, body);
                       await logSystemActivity(
                         `Operator sent email to ${contact.first_name} ${contact.last_name}. Subject: ${subject}`,
                         'EMAIL_SENT',
