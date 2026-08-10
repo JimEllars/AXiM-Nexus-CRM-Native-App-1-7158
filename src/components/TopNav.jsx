@@ -147,7 +147,7 @@ const TopNav = ({ toggleSidebar }) => {
       <div className="flex items-center space-x-4 flex-1">
         <button
           onClick={() => {
-            notificationService.notifyInfo('Mobile menu coming soon.');
+
             toggleSidebar();
           }}
           className="md:hidden p-2 text-slate-500 hover:text-indigo-600 focus:outline-none transition-colors"
