@@ -6,6 +6,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { supabase } from '../lib/supabase';
+import { notificationService } from '../services/notificationService';
 
 const TopNav = ({ toggleSidebar }) => {
     const [isAgentDrawerOpen, setIsAgentDrawerOpen] = useState(false);
@@ -145,7 +146,10 @@ const TopNav = ({ toggleSidebar }) => {
     <header className="h-auto min-h-[4rem] bg-white border-b border-slate-200 flex flex-wrap sm:flex-nowrap items-center justify-between px-4 lg:px-8 py-2 z-10 w-full flex-shrink-0 gap-2">
       <div className="flex items-center space-x-4 flex-1">
         <button
-          onClick={toggleSidebar}
+          onClick={() => {
+            notificationService.notifyInfo('Mobile menu coming soon.');
+            toggleSidebar();
+          }}
           className="md:hidden p-2 text-slate-500 hover:text-indigo-600 focus:outline-none transition-colors"
         >
           <SafeIcon icon={FiIcons.FiMenu} className="text-2xl" />
