@@ -185,10 +185,17 @@ const Pipeline = () => {
   const [dragOverDealId, setDragOverDealId] = useState(null);
   const [inspectedDeal, setInspectedDeal] = useState(null);
 
-  const filteredDeals = useMemo(() => {
-    if (selectedCampaignId === 'all') return localDeals;
-    return localDeals.filter(d => d.campaign_id === selectedCampaignId);
-  }, [localDeals, selectedCampaignId]);
+    const filteredDeals = useMemo(() => {
+    let dealsToFilter = localDeals;
+    if (pipelineType === 'b2b') {
+      dealsToFilter = dealsToFilter.filter(d => !!d.account_id);
+    } else if (pipelineType === 'b2c') {
+      dealsToFilter = dealsToFilter.filter(d => !d.account_id);
+    }
+
+    if (selectedCampaignId === 'all') return dealsToFilter;
+    return dealsToFilter.filter(d => d.campaign_id === selectedCampaignId);
+  }, [localDeals, selectedCampaignId, pipelineType]);
 
   const campaignStats = useMemo(() => {
     return {
@@ -351,7 +358,7 @@ const Pipeline = () => {
             <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
               <button
                 onClick={() => {
-                  notificationService.notifyInfo('Pipeline separation coming soon.');
+                  handleTypeChange('b2b');
 
                 }}
                 className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${pipelineType === 'b2b' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
@@ -360,7 +367,7 @@ const Pipeline = () => {
               </button>
               <button
                 onClick={() => {
-                  notificationService.notifyInfo('Pipeline separation coming soon.');
+                  handleTypeChange('b2c');
 
                 }}
                 className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${pipelineType === 'b2c' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}

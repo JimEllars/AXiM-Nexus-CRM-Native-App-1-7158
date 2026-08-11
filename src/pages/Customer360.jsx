@@ -228,10 +228,19 @@ const { loading, error } = useCrm();
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mt-6">
-            <h3 className="text-sm font-black text-slate-900 mb-4 flex items-center space-x-2">
-              <SafeIcon icon={FiIcons.FiMail} className="text-indigo-500" />
-              <span>Send Email</span>
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-black text-slate-900 flex items-center space-x-2">
+                <SafeIcon icon={FiIcons.FiMail} className="text-indigo-500" />
+                <span>Send Email</span>
+              </h3>
+              <button
+                onClick={() => notificationService.notifyInfo('SMS gateway routing pending.')}
+                className="text-slate-400 hover:text-indigo-600 transition-colors p-1 rounded-lg hover:bg-slate-100"
+                title="Send SMS"
+              >
+                <SafeIcon icon={FiIcons.FiMessageSquare} />
+              </button>
+            </div>
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Subject</label>
@@ -326,6 +335,13 @@ const { loading, error } = useCrm();
                   className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md flex items-center space-x-2 ${isSending ? 'bg-indigo-400 text-white cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
                 >
                   <SafeIcon icon={FiIcons.FiSend} /><span>Send Message</span>
+                </button>
+                <button
+                  onClick={() => notificationService.notifyInfo('SMS gateway routing pending.')}
+                  className="px-4 py-2.5 rounded-xl text-slate-500 hover:bg-slate-100 border border-slate-200 transition-colors shadow-sm ml-3 flex items-center justify-center"
+                  title="Send SMS"
+                >
+                  <SafeIcon icon={FiIcons.FiMessageSquare} />
                 </button>
               </div>
             </div>

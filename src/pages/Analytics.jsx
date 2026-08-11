@@ -170,8 +170,8 @@ const Analytics = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {[1, 2, 3, 4].map((i) => (
           localLoading ? (
             <div key={i} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-pulse">
               <div className="h-3 bg-slate-200 rounded w-1/2 mb-4"></div>
@@ -207,6 +207,16 @@ const Analytics = () => {
                   <div className="mt-4 flex items-center text-indigo-600 text-xs font-bold">
                     <SafeIcon icon={FiIcons.FiCpu} className="mr-1" />
                     <span>System Stable</span>
+                  </div>
+                </>
+              )}
+              {i === 4 && (
+                <>
+                  <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Avg. Pipeline Velocity</div>
+                  <div className="text-3xl font-black text-slate-900">14 Days</div>
+                  <div className="mt-4 flex items-center text-emerald-600 text-xs font-bold">
+                    <SafeIcon icon={FiIcons.FiTrendingDown} className="mr-1" />
+                    <span>-2 Days to Close</span>
                   </div>
                 </>
               )}

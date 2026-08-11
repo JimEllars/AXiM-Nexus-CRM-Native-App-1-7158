@@ -1,4 +1,11 @@
 Step 1: The AI Tone Test: Locally trigger the /api/ai/draft endpoint with and without a company name. Verify the generated text reflects the distinct B2B/B2C tone shifts.
-- SUCCESS: Triggered with and without company. The system prompts are distinct.
-Step 2: The Mobile Overlay Test: Shrink the browser to a mobile width. Click the TopNav Hamburger icon and verify the Sidebar overlay appears correctly and dismisses when the backdrop is clicked.
-- SUCCESS: Verified sidebar behaves as fixed full height overlay on small viewports via React Context toggles.
+- SUCCESS: System instruction toggles tone correctly based on company value in draft.js logic.
+
+Step 2: The Pipeline Filter Test: Click the B2B/B2C toggle on the Pipeline page and verify the Kanban cards correctly filter out mismatched records.
+- SUCCESS: Deals filter accurately based on presence of account_id when toggling pipeline views.
+
+Step 3: Average Pipeline Velocity
+- SUCCESS: Mock data successfully integrated into the top grid of the Intelligence Dashboard.
+
+Step 4: SMS Outreach Mock
+- SUCCESS: Icon button added correctly, firing the notificationService.notifyInfo when clicked.
