@@ -8,10 +8,10 @@ import * as FiIcons from 'react-icons/fi';
 import { supabase } from '../lib/supabase';
 import { notificationService } from '../services/notificationService';
 
-const TopNav = ({ toggleSidebar }) => {
+const TopNav = () => {
     const [isAgentDrawerOpen, setIsAgentDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks, isUserOnline, isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen } = useCrm();
+  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks, isUserOnline, isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen, isMobileMenuOpen, setIsMobileMenuOpen } = useCrm();
   const incompleteTasksCount = (tasks || []).filter(t => t.status !== 'DONE').length;
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -147,8 +147,7 @@ const TopNav = ({ toggleSidebar }) => {
       <div className="flex items-center space-x-4 flex-1">
         <button
           onClick={() => {
-
-            toggleSidebar();
+            setIsMobileMenuOpen(!isMobileMenuOpen);
           }}
           className="md:hidden p-2 text-slate-500 hover:text-indigo-600 focus:outline-none transition-colors"
         >

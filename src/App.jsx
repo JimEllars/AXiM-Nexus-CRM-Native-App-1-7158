@@ -23,8 +23,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import CommandPalette from './components/modals/CommandPalette';
 
 const MainLayout = ({ children }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   const { isDarkMode, setIsGlobalTaskDrawerOpen } = useCrm();
 
   useEffect(() => {
@@ -51,9 +49,9 @@ const MainLayout = ({ children }) => {
   return (
     <ProtectedRoute>
       <div className="flex h-screen bg-slate-100 overflow-hidden font-sans text-slate-900">
-        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+        <Sidebar />
         <div className="flex-1 flex flex-col h-screen overflow-hidden w-full">
-          <TopNav toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+          <TopNav />
           <main className="flex-1 overflow-y-auto custom-scrollbar">
             <ErrorBoundary>
               {children}

@@ -27,6 +27,7 @@ export const CrmProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
   const [isSweeping, setIsSweeping] = useState(false);
   const [isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [pipelineStages, setPipelineStages] = useState({
     b2b: {
       label: 'Commercial B2B',
@@ -442,7 +443,7 @@ export const CrmProvider = ({ children }) => {
         const newValue = !prev;
         localStorage.setItem('axim_dark_mode', JSON.stringify(newValue));
         return newValue;
-      }), isUserOnline, setIsUserOnline, presenceChannel, isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen
+      }), isUserOnline, setIsUserOnline, presenceChannel, isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen, isMobileMenuOpen, setIsMobileMenuOpen
     }}>
       {children}
     </CrmContext.Provider>

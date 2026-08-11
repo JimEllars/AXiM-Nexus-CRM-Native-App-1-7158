@@ -134,7 +134,7 @@ const Analytics = () => {
 
       {/* Sequence Engagement Metrics (Admin Only) */}
       {isAdmin && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
             <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Active Sequences</div>
             <div className="text-3xl font-black text-white">12</div>
@@ -157,6 +157,14 @@ const Analytics = () => {
             <div className="mt-4 flex items-center text-emerald-400 text-xs font-bold">
               <SafeIcon icon={FiIcons.FiTrendingUp} className="mr-1" />
               <span>+1.5% from last week</span>
+            </div>
+          </div>
+          <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+            <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Avg. Pipeline Velocity</div>
+            <div className="text-3xl font-black text-white">14 Days</div>
+            <div className="mt-4 flex items-center text-emerald-400 text-xs font-bold">
+              <SafeIcon icon={FiIcons.FiTrendingDown} className="mr-1" />
+              <span>-2 Days to Close</span>
             </div>
           </div>
         </div>

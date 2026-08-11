@@ -4,8 +4,8 @@ import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import { useCrm } from '../context/CrmContext';
 
-const Sidebar = ({ isOpen, setIsOpen }) => {
-  const { session } = useCrm();
+const Sidebar = () => {
+  const { session, isMobileMenuOpen, setIsMobileMenuOpen } = useCrm();
   const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com' || session?.user?.email === 'james.ellars@axim.us.com';
   const navItems = [
     { name: 'Dashboard', path: '/', icon: FiIcons.FiLayout },
@@ -22,15 +22,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   return (
     <>
       {/* Mobile backdrop */}
-      {isOpen && (
+      {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={() => setIsMobileMenuOpen(false)}
         ></div>
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col h-screen border-r border-slate-800 flex-shrink-0 transition-transform duration-300 ease-in-out flex`}>
+      <div className={`fixed inset-y-0 left-0 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col h-screen border-r border-slate-800 flex-shrink-0 transition-transform duration-300 ease-in-out flex`}>
         <div className="p-6 flex items-center space-x-3 justify-between md:justify-start">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-indigo-500 rounded-md flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -43,7 +43,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </div>
           <button
             className="md:hidden text-slate-400 hover:text-white"
-            onClick={() => setIsOpen(false)}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             <SafeIcon icon={FiIcons.FiX} className="text-2xl" />
           </button>
@@ -54,7 +54,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <NavLink
               key={item.name}
               to={item.path}
-              onClick={() => setIsOpen(false)}
+              onClick={() => setIsMobileMenuOpen(false)}
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                   isActive

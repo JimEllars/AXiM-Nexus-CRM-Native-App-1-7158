@@ -11,8 +11,12 @@ export async function onRequestPost(context) {
       });
     }
 
+    const toneInstruction = company
+      ? "Adopt a formal, professional B2B sales tone."
+      : "Adopt a friendly, community-oriented B2C tone.";
+
     const messages = [
-      { role: "system", content: "You are an expert AXiM sales representative drafting a concise, professional email. Do not include subject lines, just the body of the email." },
+      { role: "system", content: `You are an expert AXiM sales representative drafting a concise email. ${toneInstruction} Do not include conversational filler like "Here is your draft:". Do not include subject lines, just the body of the email. Respond strictly with the email text only.` },
       { role: "user", content: `Write an email to ${contactName ? contactName : 'a contact'}${company ? ` at ${company}` : ''} about: ${promptContext}` }
     ];
 

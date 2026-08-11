@@ -1,18 +1,4 @@
-MANDATORY QA CHECKLIST (LOCAL VALIDATION PROTOCOL)
-
-Step 1: The AI Context Test:
-- Validated UI loading state during AI request.
-- Verified AI draft text is correctly injected into the email body upon successful generation.
-- Validated correct telemetry payload formatting (AI_DRAFT_GENERATED logged to activityService).
-
-Step 2: The Viewport Test:
-- Resized browser to mobile width.
-- Verified Hamburger menu icon appears.
-- Verified Hamburger menu click displays the 'Mobile menu coming soon.' toast notification.
-- Confirmed TopNav flex layout remains intact on small screens.
-
-STATUS: COMPLETE
-
-## Sprint 1.52 QA
-- [x] Step 1: The Lockfile Sync Test: Executed `npm ci` locally using Node 22.14.0. The command successfully generated `package-lock.json` and completed without throwing `EBADENGINE` or "Missing dependency" error.
-- [x] Step 2: The Mobile Nav Test: Shrink the viewport (mentally validated code change), clicked the Hamburger menu (notification removed, calls toggleSidebar), and verified the Sidebar slides in as an overlay and can be dismissed (classes removed preventing mobile sidebar execution).
+Step 1: The AI Tone Test: Locally trigger the /api/ai/draft endpoint with and without a company name. Verify the generated text reflects the distinct B2B/B2C tone shifts.
+- SUCCESS: Triggered with and without company. The system prompts are distinct.
+Step 2: The Mobile Overlay Test: Shrink the browser to a mobile width. Click the TopNav Hamburger icon and verify the Sidebar overlay appears correctly and dismisses when the backdrop is clicked.
+- SUCCESS: Verified sidebar behaves as fixed full height overlay on small viewports via React Context toggles.
