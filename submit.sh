@@ -1,2 +1,1 @@
-#!/bin/bash
-echo "STATUS: COMPLETE"
+echo 'STATUS: COMPLETE'

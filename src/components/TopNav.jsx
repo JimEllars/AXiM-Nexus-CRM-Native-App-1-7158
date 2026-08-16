@@ -237,33 +237,35 @@ const TopNav = () => {
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden z-50">
-              <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-800">Recent Notifications</h3>
+            <>
+              <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40" onClick={() => setIsDropdownOpen(false)}></div>
+              <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-slate-200 flex flex-col">
+                <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                  <h3 className="text-base font-bold text-slate-800">System Notifications</h3>
+                  <button onClick={() => setIsDropdownOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                    <SafeIcon icon={FiIcons.FiX} className="text-xl" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                    <SafeIcon icon={FiIcons.FiBellOff} className="text-2xl" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-600">No new system alerts.</p>
+                  <p className="text-xs text-slate-400 mt-1">You're all caught up!</p>
+                </div>
+                <div className="p-4 bg-slate-50 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      setUnreadCount(0);
+                      setIsDropdownOpen(false);
+                    }}
+                    className="w-full bg-indigo-50 text-indigo-600 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-colors"
+                  >
+                    Mark all as read
+                  </button>
+                </div>
               </div>
-              <ul className="max-h-64 overflow-y-auto">
-                {liveNotifications.length > 0 ? (
-                  liveNotifications.map((notif) => (
-                    <li key={notif.id} className="px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer">
-                      <p className="text-xs text-slate-600">{notif.description || notif.message || notif.title || 'Notification'}</p>
-                    </li>
-                  ))
-                ) : (
-                  <li className="px-4 py-3 text-xs text-slate-500 text-center">No recent notifications</li>
-                )}
-              </ul>
-              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
-                <button
-                  onClick={() => {
-                    setUnreadCount(0);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors text-center py-1"
-                >
-                  Mark all as read
-                </button>
-              </div>
-            </div>
+            </>
           )}
         </div>
         <div className="flex items-center space-x-3 pl-4 lg:pl-6 border-l border-slate-200 cursor-pointer group" onClick={() => setIsAgentDrawerOpen(true)}>

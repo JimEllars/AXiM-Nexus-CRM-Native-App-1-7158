@@ -8,6 +8,8 @@ import { notificationService } from '../services/notificationService';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 import LogActivityModal from '../components/modals/LogActivityModal';
+import SmsComposerModal from '../components/modals/SmsComposerModal';
+import { smsService } from '../services/smsService';
 import EmailComposerModal from '../components/modals/EmailComposerModal';
 import EnrichmentStatusPanel from '../components/EnrichmentStatusPanel';
 
@@ -48,6 +50,7 @@ const Customer360 = () => {
   const { contacts, accounts, activities, deals, logSystemActivity } = useCrm();
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isSmsModalOpen, setIsSmsModalOpen] = useState(false);
   const [filterType, setFilterType] = useState('All');
   const [isSending, setIsSending] = useState(false);
 
@@ -234,7 +237,7 @@ const { loading, error } = useCrm();
                 <span>Send Email</span>
               </h3>
               <button
-                onClick={() => notificationService.notifyInfo('SMS gateway routing pending.')}
+                onClick={() => setIsSmsModalOpen(true)}
                 className="text-slate-400 hover:text-indigo-600 transition-colors p-1 rounded-lg hover:bg-slate-100"
                 title="Send SMS"
               >
@@ -337,7 +340,7 @@ const { loading, error } = useCrm();
                   <SafeIcon icon={FiIcons.FiSend} /><span>Send Message</span>
                 </button>
                 <button
-                  onClick={() => notificationService.notifyInfo('SMS gateway routing pending.')}
+                  onClick={() => setIsSmsModalOpen(true)}
                   className="px-4 py-2.5 rounded-xl text-slate-500 hover:bg-slate-100 border border-slate-200 transition-colors shadow-sm ml-3 flex items-center justify-center"
                   title="Send SMS"
                 >
@@ -463,6 +466,21 @@ const { loading, error } = useCrm();
         entityId={contact.id}
         entityType="contact"
       />
+      <SmsComposerModal
+        isOpen={isSmsModalOpen}
+        onClose={() => setIsSmsModalOpen(false)}
+        contact={contact}
+        onSend={async (phone, message) => {
+          await smsService.sendSms(phone, message);
+          await logSystemActivity(
+            `Operator sent SMS to ${contact.first_name} ${contact.last_name}.`,
+            'SMS_SENT',
+            { contact_id: contact.id, entity_id: contact.id }
+          );
+          notificationService.notifySuccess('SMS dispatched successfully.');
+        }}
+      />
+
     </div>
   );
 };
