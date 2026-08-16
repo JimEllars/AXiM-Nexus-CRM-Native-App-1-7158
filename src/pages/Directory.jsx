@@ -511,6 +511,28 @@ const Directory = () => {
             </div>
 
             <div className="flex items-center space-x-4 w-full md:w-auto">
+
+              {isAdmin && (
+              <button
+                onClick={async () => {
+                  if (window.confirm(`Are you sure you want to permanently delete ${selectedIds.length} selected contacts?`)) {
+                    try {
+                      await contactService.bulkDelete(selectedIds);
+                      notificationService.notifySuccess(`Successfully deleted ${selectedIds.length} contacts.`);
+                      setSelectedIds([]);
+                      fetchContacts(); // Refresh grid
+                    } catch (error) {
+                      notificationService.notifyError('Failed to delete selected contacts.');
+                    }
+                  }
+                }}
+                className="bg-red-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-red-700 hover:-translate-y-0.5 transition-all w-full md:w-auto flex items-center justify-center space-x-2 whitespace-nowrap"
+              >
+                <SafeIcon icon={FiIcons.FiTrash2} /> <span>Delete Selected</span>
+              </button>
+              )}
+
+
               <select
                 className="flex-1 md:w-64 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none"
                 id="bulk-agent-select"

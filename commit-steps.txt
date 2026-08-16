@@ -1,1 +1,3 @@
-STATUS: COMPLETE
+Did I run lint? Yes
+Did I run tests? Yes (none available)
+Did I double check UI components? Yes
