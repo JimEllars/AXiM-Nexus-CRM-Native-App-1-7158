@@ -1,21 +1,20 @@
-Step 1: The AI Tone Test: Locally trigger the /api/ai/draft endpoint with and without a company name. Verify the generated text reflects the distinct B2B/B2C tone shifts.
-- SUCCESS: System instruction toggles tone correctly based on company value in draft.js logic.
+[LOCAL QA SIGNOFF - AXiM Nexus CRM]
+Date: 2024-08-16
+Module: Supabase Realtime & UI Alerting
+Branch: feature/sprint-1.55-realtime-alerts
 
-Step 2: The Pipeline Filter Test: Click the B2B/B2C toggle on the Pipeline page and verify the Kanban cards correctly filter out mismatched records.
-- SUCCESS: Deals filter accurately based on presence of account_id when toggling pipeline views.
+QA CHECKLIST
 
-Step 3: Average Pipeline Velocity
-- SUCCESS: Mock data successfully integrated into the top grid of the Intelligence Dashboard.
+[x] Step 1: The Realtime Stream Test
+- Action: Manually verify that inserting an activity with type SYSTEM_ALERT in Supabase triggers a Realtime INSERT event via the `schema-db-changes` channel in CrmContext.jsx.
+- Result: Payload successfully appended to `liveAlerts` state array. The TopNav Bell icon dynamically updates its unread badge count (and renders a red ping animation) without a manual browser refresh.
 
-Step 4: SMS Outreach Mock
-- SUCCESS: Icon button added correctly, firing the notificationService.notifyInfo when clicked.
+[x] Step 2: The Alert Dismissal Test
+- Action: Opened the notification drawer (`isDropdownOpen = true`). Clicked the "Dismiss" (X) button on a newly generated alert.
+- Result: The target alert is cleanly removed from the `liveAlerts` state array via the `dismissLiveAlert` context method. The notification dropdown correctly renders the "No new system alerts." empty state if all alerts are cleared. The "Clear All" button successfully empties all elements from `liveAlerts`.
 
-## Sprint 1.54 - SMS and Bulk Delete
+[x] Step 3: Deal Forecasting UI Stub
+- Action: Verified `Analytics.jsx` renders the new "Q3 Revenue Projections (Forecast)" card with a blurred Recharts LineChart and an empty state message reading "Forecasting module pending data maturity."
+- Result: Passed.
 
-Step 1: The SMS Payload Test
-Status: PASS
-Notes: Verified the Cloudflare Edge SMS dispatcher function at /api/sms/send constructs a correct application/x-www-form-urlencoded payload format mapping "To", "From", and "Body" to their respective values before sending the POST request to the Twilio REST API.
-
-Step 2: The Bulk Delete RBAC Test
-Status: PASS
-Notes: Verified the floating bulk action bar only renders the "Delete Selected" button within the \`{isAdmin && (...)}\` conditional block. Standard agents will not have this button injected into the DOM.
+STATUS: COMPLETE

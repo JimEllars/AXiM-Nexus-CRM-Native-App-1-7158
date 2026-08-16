@@ -28,6 +28,7 @@ export const CrmProvider = ({ children }) => {
   const [isSweeping, setIsSweeping] = useState(false);
   const [isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [liveAlerts, setLiveAlerts] = useState([]);
   const [pipelineStages, setPipelineStages] = useState({
     b2b: {
       label: 'Commercial B2B',
@@ -228,6 +229,10 @@ export const CrmProvider = ({ children }) => {
         },
         (payload) => {
           console.log('Realtime Activities insert received:', payload);
+          const type = payload.new.type;
+          if (type === 'SYSTEM_ALERT' || type === 'SMS_SENT' || type === 'SWARM_COMPLETE') {
+             setLiveAlerts(prev => [payload.new, ...prev]);
+          }
           setActivities(prevActivities => {
             const exists = prevActivities.some(act => act.id === payload.new.id);
             if (exists) return prevActivities;
@@ -393,6 +398,14 @@ export const CrmProvider = ({ children }) => {
     await updateDeal(dealId, { stage: newStage });
   };
 
+  const dismissLiveAlert = (alertId) => {
+    setLiveAlerts(prev => prev.filter(a => a.id !== alertId));
+  };
+
+  const clearAllLiveAlerts = () => {
+    setLiveAlerts([]);
+  };
+
   const runOnyxSweep = useCallback(async () => {
     setIsSweeping(true);
     try {
@@ -439,7 +452,7 @@ export const CrmProvider = ({ children }) => {
   return (
     <CrmContext.Provider value={{
       activeOrganization, session, loading, error, campaigns, accounts, contacts, deals, activities, workflows, tasks, isSweeping, pipelineStages, setPipelineStages,
-      addDeal, updateDeal, addActivity, logSystemActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, toggleDarkMode: () => setIsDarkMode(prev => {
+      addDeal, updateDeal, addActivity, logSystemActivity, addTask, addContact, bulkAddContacts, addCampaign, toggleTaskStatus, moveDealStage, addWorkflow, toggleWorkflow, deleteWorkflow, runOnyxSweep, refreshData: loadAllData, realtimeStatus, authLoading, enrichmentQueue, isDarkMode, setIsDarkMode, liveAlerts, dismissLiveAlert, clearAllLiveAlerts, toggleDarkMode: () => setIsDarkMode(prev => {
         const newValue = !prev;
         localStorage.setItem('axim_dark_mode', JSON.stringify(newValue));
         return newValue;

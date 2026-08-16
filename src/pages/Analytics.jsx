@@ -316,6 +316,33 @@ const Analytics = () => {
           </div>
         </div>
       </div>
+
+      {/* Deal Forecasting UI Stub (5% allocation) */}
+      <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm flex flex-col h-96 mt-6">
+        <h3 className="text-slate-200 font-bold mb-4">Q3 Revenue Projections (Forecast)</h3>
+        <div className="flex-1 w-full h-full min-w-0 relative flex items-center justify-center overflow-hidden">
+          {/* Blurred mock chart */}
+          <div className="absolute inset-0 blur-md opacity-30 select-none pointer-events-none">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={[{name: 'Jul', v: 10000}, {name: 'Aug', v: 15000}, {name: 'Sep', v: 22000}]}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                <XAxis dataKey="name" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <Line type="monotone" dataKey="v" stroke="#818cf8" strokeWidth={4} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          {/* Empty state overlay */}
+          <div className="z-10 text-center px-4 bg-slate-900/60 p-4 rounded-xl backdrop-blur-sm border border-slate-700/50">
+             <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
+               <SafeIcon icon={FiIcons.FiTrendingUp} className="text-xl text-slate-400" />
+             </div>
+             <p className="text-slate-200 font-bold text-sm">Forecasting module pending data maturity.</p>
+             <p className="text-slate-400 text-xs mt-1 max-w-xs">Requires at least 30 days of historical win-loss data to train the predictive model.</p>
+          </div>
+        </div>
+      </div>
+
       <div className="hidden">
         {localLoading ? (
           <div className="w-full h-full flex items-end justify-between space-x-2 animate-pulse pb-4">
