@@ -11,8 +11,8 @@ export async function onRequestPost(context) {
       });
     }
 
-    const toneInstruction = company
-      ? "Adopt a formal, professional B2B sales tone."
+    const toneInstruction = (company && company.trim() !== '')
+      ? "Adopt a formal, direct B2B sales tone."
       : "Adopt a friendly, community-oriented B2C tone.";
 
     const messages = [
