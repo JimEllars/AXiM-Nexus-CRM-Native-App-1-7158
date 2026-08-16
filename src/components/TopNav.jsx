@@ -11,7 +11,7 @@ import { notificationService } from '../services/notificationService';
 const TopNav = () => {
     const [isAgentDrawerOpen, setIsAgentDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks, isUserOnline, isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen, isMobileMenuOpen, setIsMobileMenuOpen } = useCrm();
+  const { contacts, accounts, deals, activities, isDarkMode, toggleDarkMode, tasks, isUserOnline, isGlobalTaskDrawerOpen, setIsGlobalTaskDrawerOpen, isMobileMenuOpen, setIsMobileMenuOpen, liveAlerts, dismissLiveAlert, clearAllLiveAlerts } = useCrm();
   const incompleteTasksCount = (tasks || []).filter(t => t.status !== 'DONE').length;
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -107,24 +107,6 @@ const TopNav = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSearchOpen, searchResults, focusedIndex, navigate]);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel('topnav-activities-sync')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'activities'
-      }, (payload) => {
-        if (payload.new && (payload.new.type === 'SYSTEM_ALERT' || payload.new.type === 'SWARM_COMPLETE')) {
-          setUnreadCount(prev => prev + 1);
-        }
-      })
-      .subscribe((status, err) => {
-        if (err) console.error('TopNav Realtime sync error:', err);
-      });
-
-    return () => { supabase.removeChannel(channel); };
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -225,13 +207,13 @@ const TopNav = () => {
             className="text-slate-400 hover:text-slate-600 relative transition-colors"
             onClick={() => {
               setIsDropdownOpen(!isDropdownOpen);
-              if (!isDropdownOpen) setUnreadCount(0);
+
             }}
           >
             <SafeIcon icon={FiIcons.FiBell} className="text-xl" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-rose-500 rounded-full border-2 border-white text-[8px] text-white flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
+            {liveAlerts.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-rose-500 rounded-full border-2 border-white text-[8px] text-white flex items-center justify-center animate-pulse">
+                {liveAlerts.length > 9 ? '9+' : liveAlerts.length}
               </span>
             )}
           </button>
@@ -246,24 +228,44 @@ const TopNav = () => {
                     <SafeIcon icon={FiIcons.FiX} className="text-xl" />
                   </button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
-                    <SafeIcon icon={FiIcons.FiBellOff} className="text-2xl" />
+                <div className="flex-1 overflow-y-auto">
+                  {liveAlerts.length === 0 ? (
+                    <div className="p-6 flex flex-col items-center justify-center text-center h-full">
+                      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                        <SafeIcon icon={FiIcons.FiBellOff} className="text-2xl" />
+                      </div>
+                      <p className="text-sm font-semibold text-slate-600">No new system alerts.</p>
+                      <p className="text-xs text-slate-400 mt-1">You're all caught up!</p>
+                    </div>
+                  ) : (
+                    <ul className="flex flex-col">
+                      {liveAlerts.map(alert => (
+                        <li key={alert.id} className="p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors flex justify-between items-start gap-2">
+                          <div className="flex-1">
+                            <p className="text-sm text-slate-800">{alert.description || alert.type}</p>
+                            <span className="text-xs text-slate-400 mt-1 block">{new Date(alert.created_at).toLocaleTimeString()}</span>
+                          </div>
+                          <button onClick={() => dismissLiveAlert(alert.id)} className="text-slate-400 hover:text-rose-500 p-1">
+                            <SafeIcon icon={FiIcons.FiX} className="text-sm" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {liveAlerts.length > 0 && (
+                  <div className="p-4 bg-slate-50 border-t border-slate-100">
+                    <button
+                      onClick={() => {
+                        clearAllLiveAlerts();
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full bg-indigo-50 text-indigo-600 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-colors"
+                    >
+                      Clear All
+                    </button>
                   </div>
-                  <p className="text-sm font-semibold text-slate-600">No new system alerts.</p>
-                  <p className="text-xs text-slate-400 mt-1">You're all caught up!</p>
-                </div>
-                <div className="p-4 bg-slate-50 border-t border-slate-100">
-                  <button
-                    onClick={() => {
-                      setUnreadCount(0);
-                      setIsDropdownOpen(false);
-                    }}
-                    className="w-full bg-indigo-50 text-indigo-600 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-colors"
-                  >
-                    Mark all as read
-                  </button>
-                </div>
+                )}
               </div>
             </>
           )}
