@@ -13,6 +13,7 @@ import { enrichmentService } from '../services/enrichmentService';
 import { activityService } from '../services/activityService';
 import { notificationService } from '../services/notificationService';
 import { supabase } from '../lib/supabase';
+import { exportToCsv } from '../utils/csv';
 
 const Directory = () => {
   const { accounts, session } = useCrm();
@@ -292,6 +293,13 @@ const Directory = () => {
           >
             <SafeIcon icon={FiIcons.FiUpload} />
             <span className="hidden sm:inline">Import CSV</span>
+          </button>)}
+          {isAdmin && (<button
+            onClick={() => exportToCsv(localContacts, 'axim-contacts-export.csv')}
+            className="bg-white border border-slate-200 text-slate-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all flex items-center space-x-2 shrink-0"
+          >
+            <SafeIcon icon={FiIcons.FiDownload} />
+            <span className="hidden sm:inline">Download CSV</span>
           </button>)}
           <button 
             onClick={() => setIsModalOpen(true)}
