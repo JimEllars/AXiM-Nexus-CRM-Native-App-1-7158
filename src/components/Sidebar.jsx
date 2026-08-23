@@ -10,6 +10,7 @@ const Sidebar = () => {
   const isAdmin = session?.user?.app_metadata?.role === 'admin' || session?.user?.role === 'admin' || session?.user?.email === 'admin@axim.us.com' || session?.user?.email === 'james.ellars@axim.us.com';
   const navItems = [
     { name: 'Dashboard', path: '/', icon: FiIcons.FiLayout },
+    { name: 'Calendar', path: '/calendar', icon: FiIcons.FiCalendar },
     { name: 'Swarm (Tasks)', path: '/swarm', icon: FiIcons.FiZap },
     { name: 'Pipeline', path: '/pipeline', icon: FiIcons.FiTrello },
     { name: 'Directory', path: '/directory', icon: FiIcons.FiUsers },

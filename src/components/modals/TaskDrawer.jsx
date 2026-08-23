@@ -8,6 +8,8 @@ import { notificationService } from '../../services/notificationService';
 const TaskDrawer = ({ isOpen, onClose }) => {
   const { tasks, logSystemActivity, refreshData, session } = useCrm();
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskPriority, setNewTaskPriority] = useState('NORMAL');
+  const [newTaskDueDate, setNewTaskDueDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const activeTasks = tasks.filter(t => t.status !== 'DONE' || t.status === 'TODO'); // Or map as needed
@@ -27,12 +29,14 @@ const TaskDrawer = ({ isOpen, onClose }) => {
     if (e.key === 'Enter' && newTaskTitle.trim()) {
       setIsSubmitting(true);
       try {
-        const task = await taskService.createTask(newTaskTitle.trim());
+        const task = await taskService.createTask(newTaskTitle.trim(), newTaskPriority, newTaskDueDate || null);
         await logSystemActivity(
           `Operator created a manual task: ${newTaskTitle.trim().substring(0, 30)}...`,
           'SYSTEM_EVENT'
         );
         setNewTaskTitle('');
+        setNewTaskPriority('NORMAL');
+        setNewTaskDueDate('');
         await refreshData();
         notificationService.notifySuccess('Task created successfully.');
       } catch (error) {
@@ -82,7 +86,7 @@ const TaskDrawer = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        <div className="p-4 border-b border-slate-100 bg-white">
+        <div className="p-4 border-b border-slate-100 bg-white space-y-3">
           <input
             ref={inputRef}
             type="text"
@@ -93,6 +97,25 @@ const TaskDrawer = ({ isOpen, onClose }) => {
             disabled={isSubmitting}
             className="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none placeholder:text-slate-400"
           />
+          <div className="flex space-x-2">
+            <input
+              type="date"
+              value={newTaskDueDate}
+              onChange={(e) => setNewTaskDueDate(e.target.value)}
+              disabled={isSubmitting}
+              className="flex-1 text-sm border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-600"
+            />
+            <select
+              value={newTaskPriority}
+              onChange={(e) => setNewTaskPriority(e.target.value)}
+              disabled={isSubmitting}
+              className="w-1/3 text-sm border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-slate-600"
+            >
+              <option value="LOW">Low</option>
+              <option value="NORMAL">Medium</option>
+              <option value="HIGH">High</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-slate-50/50">
