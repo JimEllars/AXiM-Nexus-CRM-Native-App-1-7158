@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCrm } from '../../context/CrmContext';
 import * as FiIcons from 'react-icons/fi';
+import { notificationService } from '../../services/notificationService';
 
 const SafeIcon = ({ icon: Icon, className }) => {
   if (!Icon) return null;
@@ -62,6 +63,19 @@ const AgentProfileDrawer = ({ isOpen, onClose }) => {
               </button>
             </div>
           </div>
+
+          <div className="w-full mt-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-100 dark:border-slate-600">
+            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">AXiM Passport</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Bind your Web3 identity (SIWE) for decentralized attestation and access.</p>
+            <button
+              onClick={() => notificationService.notifyInfo('Web3 signature verification pending.')}
+              className="w-full py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors flex items-center justify-center space-x-2"
+            >
+              <SafeIcon icon={FiIcons.FiLink} />
+              <span>Connect Web3 Wallet</span>
+            </button>
+          </div>
+
         </div>
       </div>
     </>

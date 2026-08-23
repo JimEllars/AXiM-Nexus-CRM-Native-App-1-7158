@@ -28,10 +28,10 @@ export const taskService = {
     return data;
   },
 
-  async createTask(title) {
+  async createTask(title, priority = 'NORMAL', due_date = null) {
     const { data, error } = await supabase
       .from('tasks')
-      .insert([{ title, status: 'TODO', type: 'MANUAL', priority: 'NORMAL' }])
+      .insert([{ title, status: 'TODO', type: 'MANUAL', priority, due_date }])
       .select()
       .single();
     if (error) throw error;

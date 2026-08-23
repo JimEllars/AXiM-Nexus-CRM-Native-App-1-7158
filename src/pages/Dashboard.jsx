@@ -301,19 +301,40 @@ const Dashboard = () => {
               <SafeIcon icon={FiIcons.FiCheckSquare} className="text-emerald-600" />
             </h3>
             <div className="space-y-4">
-              {pendingTasks.length > 0 ? pendingTasks.slice(0, 5).map(task => (
-                <div key={task.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group cursor-pointer hover:border-indigo-200 transition-colors" onClick={() => navigate('/swarm')}>
-                  <div>
-                    <div className="text-xs font-black text-slate-800 group-hover:text-indigo-600 transition-colors">{task.title}</div>
-                    <div className="text-[9px] font-black text-slate-400 mt-1">{task.type.replace('_', ' ')}</div>
-                  </div>
-                  <div className={`text-[10px] uppercase font-black px-2 py-1 rounded ${task.priority === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'}`}>
-                    {task.priority}
-                  </div>
-                </div>
-              )) : (
-                <div className="p-4 text-center text-slate-400 text-xs italic">You have no pending tasks for today. Great job!</div>
-              )}
+              {(() => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const urgentTasks = pendingTasks.filter(task => {
+                  if (!task.due_date) return false;
+                  const dueDate = new Date(task.due_date);
+                  dueDate.setHours(0, 0, 0, 0);
+                  return dueDate <= today;
+                });
+
+                return urgentTasks.length > 0 ? urgentTasks.slice(0, 5).map(task => {
+                  const dueDate = new Date(task.due_date);
+                  dueDate.setHours(0, 0, 0, 0);
+                  const isOverdue = dueDate < today;
+
+                  return (
+                    <div key={task.id} className="relative p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group cursor-pointer hover:border-indigo-200 transition-colors" onClick={() => navigate('/swarm')}>
+                      {isOverdue && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white flex items-center justify-center animate-pulse" title="Overdue Task" />
+                      )}
+                      <div>
+                        <div className="text-xs font-black text-slate-800 group-hover:text-indigo-600 transition-colors">{task.title}</div>
+                        <div className="text-[9px] font-black text-slate-400 mt-1">{task.type.replace('_', ' ')} {isOverdue && <span className="text-rose-500 ml-2 font-bold">- Overdue</span>}</div>
+                      </div>
+                      <div className={`text-[10px] uppercase font-black px-2 py-1 rounded ${task.priority === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'}`}>
+                        {task.priority}
+                      </div>
+                    </div>
+                  );
+                }) : (
+                  <div className="p-4 text-center text-slate-400 text-xs italic">You have no urgent or overdue tasks for today. Great job!</div>
+                );
+              })()}
             </div>
           </div>
         )}

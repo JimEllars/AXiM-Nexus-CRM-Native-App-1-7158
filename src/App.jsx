@@ -4,6 +4,7 @@ import { CrmProvider, useCrm } from './context/CrmContext';
 import Sidebar from './components/Sidebar';
 import TopNav from './components/TopNav';
 import Dashboard from './pages/Dashboard';
+import Calendar from './pages/Calendar';
 import Pipeline from './pages/Pipeline';
 import Directory from './pages/Directory';
 import Accounts from './pages/Accounts';
@@ -76,6 +77,7 @@ function App() {
             <MainLayout>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
+                <Route path="/calendar" element={<Calendar />} />
                 <Route path="/pipeline" element={<Pipeline />} />
                 <Route path="/directory" element={<Directory />} />
                 <Route path="/accounts" element={<Accounts />} />
